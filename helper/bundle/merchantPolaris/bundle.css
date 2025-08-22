@@ -1,0 +1,401 @@
+/*!***********************************************************************************************************************************************!*\
+  !*** css ./node_modules/css-loader/dist/cjs.js!./node_modules/sass-loader/dist/cjs.js!./src/merchantPolaris/pages/createdeal/createdeal.scss ***!
+  \***********************************************************************************************************************************************/
+.discountVal .Polaris-TextField__Spinner {
+  display: none;
+}
+
+.font-w-bold {
+  font-weight: 500;
+}
+
+.create_deal_general {
+  display: flex;
+  flex-direction: column;
+}
+
+.create_deal_general b {
+  font-size: 0.8rem;
+}
+
+.create_deal_general p {
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: rgb(97, 106, 117);
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: inset 0px 1px 0px rgba(255, 255, 255, 0.75);
+}
+
+::-webkit-scrollbar-thumb {
+  width: 4px;
+  border-radius: 10px;
+  background-color: #999;
+}
+
+.scrollbar_container .Polaris-ResourceList {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+.scrollbar_container .Polaris-ResourceList li {
+  box-shadow: none;
+  background-color: rgba(0, 0, 0, 0.08);
+  border-radius: 5px;
+}
+/*!************************************************************************************************************************************************!*\
+  !*** css ./node_modules/css-loader/dist/cjs.js!./node_modules/sass-loader/dist/cjs.js!./src/merchantPolaris/pages/creditrules/creditRule.scss ***!
+  \************************************************************************************************************************************************/
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 20px;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: 0.4s;
+  transition: 0.4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: '';
+  height: 15px;
+  width: 15px;
+  left: 6px;
+  bottom: 3px;
+  background-color: white;
+  -webkit-transition: 0.4s;
+  transition: 0.4s;
+}
+
+input:checked + .slider {
+  background-color: #5c6ac4;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196f3;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+.card_top {
+  padding-bottom: 2%;
+}
+
+.Polaris-LegacyStack {
+  padding-bottom: 2%;
+}
+
+#reward_rule_table thead th {
+  background-color: #fbfbfb;
+  font-weight: bold;
+}
+
+.upgrade_section {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.09);
+  width: 100%;
+  height: 100%;
+  top: 52px;
+  z-index: 80;
+  backdrop-filter: blur(2px);
+}
+
+.Polaris-DataTable__Cell--firstColumn {
+  text-align: center;
+  white-space: normal;
+  vertical-align: middle;
+}
+
+.rules_tabs .Polaris-DataTable__Cell--header {
+  visibility: hidden;
+  height: 0 !important;
+}
+
+.Polaris-LegacyCard {
+  border-radius: unset;
+}
+
+.disabled_rules_table {
+  position: relative;
+}
+
+.upgrade_button {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  height: 100%;
+  width: 100%;
+  transform: translate(-50%, -50%);
+  backdrop-filter: blur(5px); /* Adjust the blur amount as needed */
+  background-color: rgba(
+    255,
+    255,
+    255,
+    0.5
+  ); /* Adjust the background color and opacity as needed */
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.upgrade_button_hide {
+  display: none;
+}
+
+/* .container {
+  position: relative;
+} */
+.upgrade-container {
+  position: absolute;
+  top: 30%;
+  left: 35%;
+}
+/*!*********************************************************************************************************************************************!*\
+  !*** css ./node_modules/css-loader/dist/cjs.js!./node_modules/sass-loader/dist/cjs.js!./src/merchantPolaris/pages/pricingplan/pricing.scss ***!
+  \*********************************************************************************************************************************************/
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1%;
+}
+.page-header .discount-card {
+  display: flex;
+  gap: 15px;
+}
+
+.pricing-plan {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 28px 0;
+}
+.pricing-plan h4 {
+  color: #202e78;
+}
+.pricing-plan .plan {
+  width: 25% !important;
+  position: relative;
+}
+.pricing-plan .plan .Polaris-Card {
+  margin: 0 !important;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.pricing-plan .plan .Polaris-Card:nth-child(2) {
+  flex-grow: 1;
+}
+.pricing-plan .selected-plan .active-plan-tag {
+  display: flex;
+  align-items: center;
+}
+.pricing-plan .selected-plan .active-plan-tag .Polaris-Tag {
+  border-radius: 0px 0px 5px 5px !important;
+  background-color: rgb(0, 122, 92);
+  color: white;
+  box-shadow:
+    0 0 0 rgba(0, 0, 0, 0.25),
+    0 5px 10px rgba(0, 0, 0, 0.22);
+  border-radius: 10px;
+}
+.pricing-plan .selected-plan .Polaris-Card {
+  border: 2px rgb(0, 122, 92) solid;
+  box-shadow:
+    0 14px 28px rgba(0, 0, 0, 0.25),
+    0 10px 10px rgba(0, 0, 0, 0.22);
+  border-top: 6px solid rgb(0, 122, 92);
+  border-radius: 10px;
+  height: 500px;
+}
+.pricing-plan .selected-plan .Polaris-Card .Polaris-Card__Section {
+  flex-grow: 1;
+}
+.pricing-plan .custome-plan {
+  min-height: 317px;
+}
+.pricing-plan .custome-plan .card-icon .Polaris-Icon {
+  height: auto;
+  width: 190px;
+}
+.pricing-plan .custome-plan .icon-text {
+  text-align: center;
+  padding-block: 20px;
+  max-width: 260px;
+}
+.pricing-plan .feature-list {
+  height: 250px;
+}
+.pricing-plan .feature-list .Polaris-List {
+  list-style-type: circle;
+}
+.pricing-plan .marketing-block {
+  padding: 10px;
+  min-height: 70px;
+  text-align: center;
+  width: 280px;
+  margin: auto;
+}
+.pricing-plan .text-center {
+  margin-block: 10px;
+  text-align: center;
+  max-width: fit-content;
+}
+.pricing-plan .active-card {
+  box-shadow: 0px 0px 0px 5px #5c6ac4;
+  border-radius: 0.5rem;
+}
+.pricing-plan .deactive-card {
+  box-shadow: 0px 0px 0px 3px #c45c5c;
+  border-radius: 0.5rem;
+}
+
+.spinner {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 100;
+}
+.spinner .Polaris-Spinner {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 99;
+}
+
+.plan-toggle-button {
+  background-color: gray; /*switched off background color*/
+  width: 55px;
+  height: 30px;
+  border-radius: 25px;
+}
+.plan-toggle-button .switch {
+  transition-duration: 0.3s;
+  left: 25%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #ffffff;
+  width: 45%;
+  height: 80%;
+  border-radius: 50%;
+}
+.plan-toggle-button .switch-active {
+  transition-duration: 0.5s;
+  left: 75%;
+}
+
+.plan-toggle-button-active {
+  background-color: #008060;
+}
+
+.discount-container {
+  position: relative;
+  width: 94%;
+  display: flex;
+  justify-content: flex-end;
+}
+.discount-container .discount-card {
+  display: flex;
+  flex-direction: row;
+  justify-content: end;
+  gap: 10px;
+  background-color: White;
+  padding: 15px;
+  border-radius: 0.5rem;
+}
+.discount-container .discount-card div {
+  width: 100%;
+}
+.discount-container .discount-card .Polaris-Button {
+  flex-shrink: 0;
+}
+.discount-container .discount-card .Polaris-Tag {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: lightgreen;
+  font-style: italic;
+  font-weight: 500;
+}
+/*!************************************************************************************************************************************!*\
+  !*** css ./node_modules/css-loader/dist/cjs.js!./node_modules/sass-loader/dist/cjs.js!./src/merchantPolaris/pages/deals/deal.scss ***!
+  \************************************************************************************************************************************/
+.product_card {
+  display: 'flex';
+  justify-content: 'space-between';
+  align-items: 'center';
+}
+.product_card .Polaris-LegacyCard {
+  width: 60%;
+}
+.product_card .prodImg {
+  max-width: 40%;
+}
+.product_card .variantImg {
+  overflow: hidden;
+  max-width: 70px;
+  padding: 7px;
+  border: 2px solid #e3e3e3;
+}
+
+.frame {
+  overflow: hidden;
+  width: 35%;
+  padding: 10px;
+}
+
+.card-header .Polaris-Card__Section {
+  background-color: #edeeef;
+}
+
+.dealTitle {
+  max-width: fit-content;
+}
+
+.prodImg {
+  max-width: 100%;
+}
+
+.Polaris-LegacyStack {
+  padding-bottom: 0;
+}
+
+#deal_layout .Polaris-Card {
+  box-shadow: none;
+}
+
+#active_deactive_btn {
+  width: 5vmax;
+}
+
+#active_deactive_btn span {
+  font-size: 0.8vmax;
+}

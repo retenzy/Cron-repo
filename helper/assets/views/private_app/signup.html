@@ -1,0 +1,247 @@
+<html>
+  <head>
+    <link rel="icon" href="../favicon.png" />
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+      integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+      crossorigin="anonymous"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css"
+      rel="stylesheet"
+    />
+    <link href="../css/private_login.css" rel="stylesheet" type="text/css" />
+    <link rel="icon" href="./favicon.png" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/css/all.min.css"
+    />
+  </head>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <!-- Latest compiled JavaScript -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js"
+    type="text/javascript"
+  ></script>
+
+  <title>Retenzy - Signup</title>
+
+  <body>
+    <div class="login-page">
+      <input type="hidden" name="_token" value="{{csrf_token()}}" />
+      <div class="form" id="login_section">
+        <div class="title-outer">
+          <div class="loading">
+            <img class="logo-image" src="../f-logo.png" alt="Retenzy " />
+          </div>
+        </div>
+        <div id="buttons">
+          <form class="signup-form" id="myForm" onsubmit="signupFunction()">
+            <label class="label-login">Enter shop name</label>
+            <input
+              type="text"
+              name="shop_name"
+              id="shop"
+              required=""
+              placeholder="shopname.myshopify.com"
+            />
+            <label class="label-login">Enter apikey</label>
+            <input
+              type="text"
+              name="client_key"
+              id="apikey"
+              required=""
+              placeholder="apikey"
+            />
+            <!-- <label class="label-login">Enter secret key</label>
+            <input type="text" name="secret_value" id="secret_key" required="" placeholder="secret key"> -->
+            <label class="label-login">Enter token</label>
+            <input
+              type="text"
+              name="token_value"
+              id="token"
+              required=""
+              placeholder="token"
+            />
+            <label class="label-login">Enter Password</label>
+            <div class="password-container">
+              <input
+                type="password"
+                name="password_value"
+                id="password"
+                required=""
+                placeholder="password"
+              />
+              <div class="toggle-password-top-right">
+                <i
+                  class="far fa-eye"
+                  id="togglePassword"
+                  onclick="showPassword()"
+                ></i>
+              </div>
+            </div>
+            <div class="error-msg" id="error-msg"></div>
+            <br />
+            <div id="submit-btn">
+              <button class="submit" type="submit" id="register">Signup</button>
+            </div>
+            <p class="ptag">
+              Already have an account?
+              <a class="cursor" id="privatelogin" href="/private/login"
+                >login</a
+              >
+            </p>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function signupValidation() {
+        let isValid = true;
+        let shopName = document.getElementById('shop').value;
+        let apiKey = document.getElementById('apikey').value;
+        // let secretKey = document.getElementById("secret_key").value
+        let accessToken = document.getElementById('token').value;
+        let passWord = document.getElementById('password').value;
+        let store = shopName.trim();
+        let validate_store = /^(?:)[a-zA-Z0-9\-]*\.myshopify\.com[\/]?/.test(
+          store
+        );
+        if (!validate_store) {
+          isValid = false;
+          shop.classList.add('error');
+          document.getElementById('error-msg').innerHTML =
+            '&#9432 Shop name is not valid.';
+          event.preventDefault();
+        } else {
+          shop.classList.remove('error');
+          let api = apiKey.trim();
+          if (!api.length) {
+            isValid = false;
+            apikey.classList.add('error');
+            document.getElementById('error-msg').innerHTML = '&#9432 required.';
+            event.preventDefault();
+          } else {
+            apikey.classList.remove('error');
+            // let secret = secretKey.trim()
+            // if (!secret.length) {
+            //   isValid = false
+            //   secret_key.classList.add("error");
+            //   document.getElementById('error-msg').innerHTML = '&#9432 required.'
+            //   event.preventDefault();
+            // } else {
+            //   secret_key.classList.remove("error");
+            let access_token = accessToken.trim();
+            // let validate_saccess_token = /^[A-Za-z0-9]+$/.test(access_token);
+            if (!access_token.length) {
+              isValid = false;
+              token.classList.add('error');
+              document.getElementById('error-msg').innerHTML =
+                '&#9432 required.';
+              event.preventDefault();
+            } else {
+              token.classList.remove('error');
+              let regex = '^(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$';
+              let key = passWord.trim();
+              let found = key.match(regex);
+              if (!key.length) {
+                isValid = false;
+                document.getElementById('error-msg').innerHTML =
+                  '&#9432 required.';
+                password.classList.add('error');
+                event.preventDefault();
+              } else if (!found) {
+                isValid = false;
+                password.classList.add('error');
+                document.getElementById('error-msg').innerHTML =
+                  '&#9432 Password length must be atleast 8 characters and should contain at least one numeric digit and a special character';
+                event.preventDefault();
+              } else {
+                isValid = true;
+                password.classList.remove('error');
+              }
+            }
+            // }
+          }
+        }
+        return isValid;
+      }
+
+      function showPassword() {
+        var x = document.getElementById('password');
+        if (x.type === 'password') {
+          x.type = 'text';
+        } else {
+          x.type = 'password';
+        }
+      }
+
+      const signupFunction = async () => {
+        event.preventDefault();
+        let valid = signupValidation();
+        if (!valid) {
+          let element = document.getElementById('submit-btn');
+          if (element) {
+            element.innerHTML = `<button class="submit" type="submit" id="register">Signup</button>`;
+          }
+          return false;
+        }
+        document.getElementById('submit-btn').innerHTML = `
+      <button class="buttonload" id="buttonload disabled">
+      <i class="fa fa-circle-o-notch fa-spin"></i>
+      </button>`;
+        let shopname = document.getElementById('shop').value;
+        let apikey = document.getElementById('apikey').value;
+        // let secret_key = document.getElementById('secret_key').value
+        let token = document.getElementById('token').value;
+        let password = document.getElementById('password').value;
+        let payload = {
+          shopname: shopname,
+          apikey: apikey,
+          token: token,
+          password: password,
+          is_private: '1',
+        };
+        const options = {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        };
+        let response = await fetch('/auth/private/signup', options);
+        let data = await response.json();
+        if (data.status != 200) {
+          document.getElementById('error-msg').innerHTML =
+            `&#9432 ${data.message}`;
+          let element = document.getElementById('submit-btn');
+          if (element) {
+            element.innerHTML = `<button class="submit" type="submit" id="register">Signup</button>`;
+          }
+          return false;
+        } else {
+          document.getElementById('error-msg').innerHTML = ``;
+          document.getElementById('myForm').innerHTML = `
+        <div class="body card">
+        <div style="border-radius:200px; height:200px; width:200px; background: #F8FAF5; margin:0 auto;">
+        <i class="check-mark">✓</i>
+        </div>
+        <h1 class="heading">Success</h1> 
+        <p class="sub-heading" style="font-size: 17px">You have created your account successfully.<br/>Please <a href="/private/login">login<a/></p>
+        </div>`;
+          let element = document.getElementById('submit-btn');
+          if (element) {
+            element.innerHTML = `<button class="submit" type="submit" id="register">Signup</button>`;
+          }
+        }
+      };
+    </script>
+  </body>
+</html>

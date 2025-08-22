@@ -20,21 +20,21 @@ const reportJob = require("./jobs/report.job");
 // Setup cron jobs
 function setupCrons() {
   // Daily at 12:00 AM
-  cronWithCheckIn.schedule("0 0 * * *", pointsExpiryJob, {
+  cronWithCheckIn.schedule("0 11 * * *", pointsExpiryJob, {
     name: "point-expiry-cron",
     timezone: "Asia/Kolkata",
   });
-  cronWithCheckIn.schedule("0 0 * * *", creditExpiryReminderEmail, {
+  cronWithCheckIn.schedule("0 12 * * * ", creditExpiryReminderEmail, {
     name: "credit-expiration-cron",
     timezone: "Asia/Kolkata",
   });
-  cronWithCheckIn.schedule("0 0 * * *", birthdayJob, {
+  cronWithCheckIn.schedule("0 13 * * *", birthdayJob, {
     name: "birthday-credit-cron",
     timezone: "Asia/Kolkata",
   });
 
   // Daily at 1:00 AM
-  cronWithCheckIn.schedule("0 1 * * *", anniversaryJob, {
+  cronWithCheckIn.schedule("0 14 * * ", anniversaryJob, {
     name: "signup-anniversary-credit-cron",
     timezone: "Asia/Kolkata",
   });
@@ -43,37 +43,37 @@ function setupCrons() {
   // cronWithCheckIn.schedule('*/10 * * * *', offerJob,                    { name: 'offer-cron', timezone: 'Asia/Kolkata' });
 
   // Daily at 2:00 AM
-  cronWithCheckIn.schedule("0 2 * * *", shopifyUpsellJob, {
+  cronWithCheckIn.schedule("0 15 * * * ", shopifyUpsellJob, {
     name: "shopify-upsell-cron",
     timezone: "Asia/Kolkata",
   });
 
   // Daily at 6:00 AM
-  cronWithCheckIn.schedule("0 6 * * *", reviewRequestMailSend, {
+  cronWithCheckIn.schedule("0 16 * * * ", reviewRequestMailSend, {
     name: "review-request-cron",
     timezone: "Asia/Kolkata",
   });
 
   // Daily at 7:00 AM
-  cronWithCheckIn.schedule("0 7 * * *", reviewRequestReminderEmail, {
+  cronWithCheckIn.schedule("0 17 * * *", reviewRequestReminderEmail, {
     name: "review-request-reminder-cron",
     timezone: "Asia/Kolkata",
   });
 
   // Daily at 12:00 PM
-  cronWithCheckIn.schedule("0 12 * * *", extensionStatusJob, {
+  cronWithCheckIn.schedule("10 12 * * *", extensionStatusJob, {
     name: "extension-status-cron",
     timezone: "Asia/Kolkata",
   });
 
   // Daily at 1:00 PM
-  cronWithCheckIn.schedule("0 13 * * *", pricingPlanJob, {
+  cronWithCheckIn.schedule("0 10 * * *", pricingPlanJob, {
     name: "pricing-plan-check-cron",
     timezone: "Asia/Kolkata",
   });
 
   // Weekly on Sunday at 1:00 AM
-  cronWithCheckIn.schedule("0 1 * * 0", googleFeedJob, {
+  cronWithCheckIn.schedule("0 * * * 0", googleFeedJob, {
     name: "google-shopping-integration-cron",
     timezone: "Asia/Kolkata",
   });

@@ -34,7 +34,7 @@ function setupCrons() {
   });
 
   // Daily at 1:00 AM
-  cronWithCheckIn.schedule("0 14 * * ", anniversaryJob, {
+  cronWithCheckIn.schedule("0 14 * * *", anniversaryJob, {
     name: "signup-anniversary-credit-cron",
     timezone: "Asia/Kolkata",
   });
@@ -43,13 +43,13 @@ function setupCrons() {
   // cronWithCheckIn.schedule('*/10 * * * *', offerJob,                    { name: 'offer-cron', timezone: 'Asia/Kolkata' });
 
   // Daily at 2:00 AM
-  cronWithCheckIn.schedule("0 15 * * * ", shopifyUpsellJob, {
+  cronWithCheckIn.schedule("0 15 * * *", shopifyUpsellJob, {
     name: "shopify-upsell-cron",
     timezone: "Asia/Kolkata",
   });
 
   // Daily at 6:00 AM
-  cronWithCheckIn.schedule("0 16 * * * ", reviewRequestMailSend, {
+  cronWithCheckIn.schedule("0 16 * * *", reviewRequestMailSend, {
     name: "review-request-cron",
     timezone: "Asia/Kolkata",
   });

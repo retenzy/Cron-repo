@@ -35,7 +35,9 @@ module.exports.reviewRequestReminderEmail = async () => {
       const value = JSON.parse(reviewSetting.value);
       console.log('store.id', store.id, store.username);
       const ismailReached = await helper.isMailLimitReached(store);
-      if (value.emailReminderTiming >= 0 && !ismailReached) {
+        const checksettigs = await helper.getMailSettings('ReviewRequestEmails.ReviewRequest', store.id);
+            console.log('store.id', shop.id, shop.username,checksettigs );
+      if (value.emailReminderTiming >= 0 && !ismailReached&& checksettigs) {
         // Get all eligible order items
         const orderItems = await db.OrderItems.findAll({
           where: {

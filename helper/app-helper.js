@@ -2692,3 +2692,33 @@ exports.sendReport = async (period) => {
     console.log('sendWeeklyReport error:', error);
   }
 };
+
+
+
+
+exports.getMailSettings=async(key, store_id)=> {
+  const setting = await db.Settings.findOne({
+    where: { store_id, key: 'mail_settings' }
+  });
+  console.log("Setting fetched:", setting?.value);
+  if (!setting) return null;
+
+  let settingsObj = {};
+  try {
+    settingsObj = JSON.parse(setting?.value); // parse JSON string
+  } catch (e) {
+    console.error("Invalid JSON in mail_settings:", e);
+    return null;
+  }
+
+  const keys = key.split("."); // support nested keys
+  let value = settingsObj;
+
+  for (const k of keys) {
+    value = value?.[k];
+    if (value === undefined) break;
+  }
+
+  return value;
+}
+

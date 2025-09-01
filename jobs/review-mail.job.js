@@ -27,7 +27,9 @@ module.exports.reviewRequestMailSend = async () => {
       let shop = setting.store;
       let value = JSON.parse(setting.value);
       const ismailReached = await helper.isMailLimitReached(shop);
-      if (value.emailTiming >= 0 && !ismailReached) {
+      const checksettigs = await helper.getMailSettings('ReviewRequestEmails.ReviewRequest', shop.id);
+      console.log('store.id', shop.id, shop.username,checksettigs );
+      if (value.emailTiming >= 0 && !ismailReached&& checksettigs) {
         let date = moment().subtract(value.emailTiming, 'days').toDate();
         date = moment(date).format('YYYY-MM-DD');
         const { start, end } = helper.GetStartEndDate(date, date);

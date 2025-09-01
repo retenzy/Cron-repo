@@ -1,3 +1,7 @@
+const db = require('./models');
+
+
+
 exports.creditLogsData = async (store, rule_id, customer_id) => {
   try {
     let expiryDate = null;
@@ -58,7 +62,9 @@ exports.creditLogsData = async (store, rule_id, customer_id) => {
 
       let ismailReached = await helper.isMailLimitReached(store);
 
-      if (parseInt(store.email_enable) && !ismailReached) {
+      let checksettigs = await helper.getMailSettings(`RewardEmailSetup.${mailObject.rule}`, store.id)
+      console.log('ismailReached, checksettigs', ismailReached, checksettigs);
+      if (parseInt(store.email_enable) && !ismailReached&& checksettigs) {
         let response;
         if (
           store.email_notification === 'retenzy' ||

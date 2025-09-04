@@ -24,10 +24,12 @@ function setupCrons() {
     name: "point-expiry-cron",
     timezone: "Asia/Kolkata",
   });
+
   cronWithCheckIn.schedule("0 12 * * * ", creditExpiryReminderEmail, {
     name: "credit-expiration-cron",
     timezone: "Asia/Kolkata",
   });
+
   cronWithCheckIn.schedule("0 13 * * *", birthdayJob, {
     name: "birthday-credit-cron",
     timezone: "Asia/Kolkata",
@@ -43,7 +45,7 @@ function setupCrons() {
   // cronWithCheckIn.schedule('*/10 * * * *', offerJob,                    { name: 'offer-cron', timezone: 'Asia/Kolkata' });
 
   // Daily at 2:00 AM
-  cronWithCheckIn.schedule("0 15 * * *", shopifyUpsellJob, {
+  cronWithCheckIn.schedule("0 00 * * *", shopifyUpsellJob, {
     name: "shopify-upsell-cron",
     timezone: "Asia/Kolkata",
   });
@@ -60,20 +62,20 @@ function setupCrons() {
     timezone: "Asia/Kolkata",
   });
 
-  // Daily at 12:00 PM
+  // Daily at 12:10 PM
   cronWithCheckIn.schedule("10 12 * * *", extensionStatusJob, {
     name: "extension-status-cron",
     timezone: "Asia/Kolkata",
   });
 
-  // Daily at 1:00 PM
-  cronWithCheckIn.schedule("0 10 * * *", pricingPlanJob, {
+  // Daily at 12:00 AM
+  cronWithCheckIn.schedule("0 00 * * *", pricingPlanJob, {
     name: "pricing-plan-check-cron",
     timezone: "Asia/Kolkata",
   });
 
   // Weekly on Sunday at 1:00 AM
-  cronWithCheckIn.schedule("0 * * * 0", googleFeedJob, {
+  cronWithCheckIn.schedule("0 1 * * 0", googleFeedJob, {
     name: "google-shopping-integration-cron",
     timezone: "Asia/Kolkata",
   });
@@ -100,35 +102,35 @@ function setupCrons() {
 // Start all cron jobs
 setupCrons();
 
-async function runAllCronsSequentially() {
-  const jobs = [
-    { name: 'point-expiry-cron',              fn: pointsExpiryJob },
-    { name: 'credit-expiration-cron',         fn: creditExpiryReminderEmail },
-    { name: 'birthday-credit-cron',           fn: birthdayJob },
-    { name: 'signup-anniversary-credit-cron', fn: anniversaryJob },
-    { name: 'shopify-upsell-cron',            fn: shopifyUpsellJob },
-    { name: 'review-request-cron',            fn: reviewRequestMailSend },
-    { name: 'review-request-reminder-cron',   fn: reviewRequestReminderEmail },
-    { name: 'extension-status-cron',          fn: extensionStatusJob },
-    { name: 'pricing-plan-check-cron',        fn: pricingPlanJob },
-    { name: 'google-shopping-integration-cron', fn: googleFeedJob },
-    { name: 'coupon-expire-cron',             fn: expireCoupons },
-    { name: 'monthly-report-cron',            fn: () => reportJob('monthly') },
-    { name: 'weekly-report-cron',             fn: () => reportJob('weekly') },
-  ];
+// async function runAllCronsSequentially() {
+//   const jobs = [
+//     { name: 'point-expiry-cron',              fn: pointsExpiryJob },
+//     { name: 'credit-expiration-cron',         fn: creditExpiryReminderEmail },
+//     { name: 'birthday-credit-cron',           fn: birthdayJob },
+//     { name: 'signup-anniversary-credit-cron', fn: anniversaryJob },
+//     { name: 'shopify-upsell-cron',            fn: shopifyUpsellJob },
+//     { name: 'review-request-cron',            fn: reviewRequestMailSend },
+//     { name: 'review-request-reminder-cron',   fn: reviewRequestReminderEmail },
+//     { name: 'extension-status-cron',          fn: extensionStatusJob },
+//     { name: 'pricing-plan-check-cron',        fn: pricingPlanJob },
+//     { name: 'google-shopping-integration-cron', fn: googleFeedJob },
+//     { name: 'coupon-expire-cron',             fn: expireCoupons },
+//     { name: 'monthly-report-cron',            fn: () => reportJob('monthly') },
+//     { name: 'weekly-report-cron',             fn: () => reportJob('weekly') },
+//   ];
 
-  for (const job of jobs) {
-    try {
-      console.log(`🟡 Starting job: ${job.name}`);
-      await job.fn(); // If job is async
-      console.log(`✅ Finished job: ${job.name}\n`);
-    } catch (error) {
-      console.error(`❌ Error in job: ${job.name}`, error);
-    }
-  }
+//   for (const job of jobs) {
+//     try {
+//       console.log(`🟡 Starting job: ${job.name}`);
+//       await job.fn(); // If job is async
+//       console.log(`✅ Finished job: ${job.name}\n`);
+//     } catch (error) {
+//       console.error(`❌ Error in job: ${job.name}`, error);
+//     }
+//   }
 
-  console.log('🎉 All jobs completed.');
-}
+//   console.log('🎉 All jobs completed.');
+// }
 
 // Immediately run
 // runAllCronsSequentially();

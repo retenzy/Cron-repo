@@ -1,28 +1,28 @@
 // const { reviewRequestMailSend } = require('../controllers/Merchant/review-request-cron');
-const db = require('../models');
-const moment = require('moment');
-const { Op } = require('sequelize');
-const helper = require('../helper/app-helper'); // adjust path if needed
-const { reviewRequestFunc } = require('../reviewRequestFunc');
+const db = require("../models");
+const moment = require("moment");
+const { Op } = require("sequelize");
+const helper = require("../helper/app-helper"); // adjust path if needed
+const { reviewRequestFunc } = require("../reviewRequestFunc");
 module.exports.reviewRequestReminderEmail = async () => {
   try {
     const reviewSettingData = await db.ReviewSetting.findOne({
       where: {
         store_id: null,
-        key: 'review_request_email_reminder',
+        key: "review_request_email_reminder",
       },
     });
 
     const storeData = await db.Store.findAll({
       where: {
-        is_uninstalled: '0',
-        email_enable: '1',
+        is_uninstalled: "0",
+        email_enable: "1",
       },
       include: {
         model: db.ReviewSetting,
         required: false,
         where: {
-          key: 'review_request_email_reminder',
+          key: "review_request_email_reminder",
         },
       },
     });
@@ -33,31 +33,25 @@ module.exports.reviewRequestReminderEmail = async () => {
       }
       const reviewSetting = store.review_settings[0];
       const value = JSON.parse(reviewSetting.value);
-      console.log('store.id', store.id, store.username);
+      console.log("store.id", store.id, store.username);
       const ismailReached = await helper.isMailLimitReached(store);
-        const checksettigs = await helper.getMailSettings('ReviewRequestEmails.ReviewRequest', store.id);
-            console.log('store.id', shop.id, shop.username,checksettigs );
-      if (value.emailReminderTiming >= 0 && !ismailReached&& checksettigs) {
+      const checksettigs = await helper.getMailSettings("ReviewRequestEmails.ReviewReminder", store.id);
+      console.log("What checksettigs ReviewRequestEmails.ReviewReminder", checksettigs);
+      if (value.emailReminderTiming >= 0 && checksettigs) {
         // Get all eligible order items
         const orderItems = await db.OrderItems.findAll({
           where: {
             store_id: store.id,
-            review_status: '1',
-            is_review: '0',
+            review_status: "1",
+            is_review: "0",
             email_reminder_count: {
               [Op.lt]: value.emailReminderCount,
             },
-            created_at: { [Op.gte]: '2025-01-01' },
+            created_at: { [Op.gte]: "2025-01-01" },
           },
           include: {
             model: db.Order,
-            attributes: [
-              'id',
-              'customer_id',
-              'order_name',
-              'customer_email',
-              'order_id',
-            ],
+            attributes: ["id", "customer_id", "order_name", "customer_email", "order_id"],
           },
         });
         // Group items by order_id
@@ -65,18 +59,15 @@ module.exports.reviewRequestReminderEmail = async () => {
         const currentDate = moment();
 
         for (const item of orderItems) {
-          const lastEmailDate =
-            item.email_reminder_count > 0
-              ? moment(item.email_reminder_date)
-              : moment(item.email_sent_date);
+          const lastEmailDate = item.email_reminder_count > 0 ? moment(item.email_reminder_date) : moment(item.email_sent_date);
 
           // Calculate days elapsed since last email
-          const daysElapsed = currentDate.diff(lastEmailDate, 'days');
+          const daysElapsed = currentDate.diff(lastEmailDate, "days");
           if (daysElapsed >= value.emailReminderTiming) {
             const orderItem = {
               line_item_id: item.line_item_id,
               product_id: item.product_id,
-              review_status: '0',
+              review_status: "0",
               email_reminder_count: item.email_reminder_count,
             };
 
@@ -100,13 +91,13 @@ module.exports.reviewRequestReminderEmail = async () => {
             };
 
             if (emailData?.order_items?.length > 0) {
-              console.log('review reminder cron  data==>', {
+              console.log("review reminder cron  data==>", {
                 ...emailData,
-                store: 'skipped store',
+                store: "skipped store",
               });
               let returnResp = await reviewRequestFunc(emailData);
               if (returnResp.error) {
-                throw new CustomError(400, 'Error to send email');
+                throw new CustomError(400, "Error to send email");
               }
             }
           }
@@ -114,7 +105,7 @@ module.exports.reviewRequestReminderEmail = async () => {
       }
     }
   } catch (error) {
-    console.log('Error to send review request email send=>>', error);
+    console.log("Error to send review request email send=>>", error);
     throw error;
   }
 };
@@ -129,14 +120,13 @@ const insertOrderData = (order, shop) => {
       domain: shop.main_domain || shop.domain,
       customer_id: order.customer_id,
       order_name: order.order_name,
-      type: 'review_request_reminder_cron',
+      type: "review_request_reminder_cron",
     };
   } catch (error) {
-    console.log('insertOrderData error', error);
+    console.log("insertOrderData error", error);
     throw error;
   }
 };
-
 
 // exports.reviewRequestFunc = async (data) => {
 //   console.log('in reviewrequestfun');

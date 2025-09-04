@@ -1,24 +1,24 @@
 // const { reviewRequestMailSend } = require('../controllers/Merchant/review-request-cron');
-const db = require('../models');
-const moment = require('moment');
-const { Op } = require('sequelize');
-const helper = require('../helper/app-helper'); // adjust path if needed
-const { reviewRequestFunc } = require('../reviewRequestFunc');
+const db = require("../models");
+const moment = require("moment");
+const { Op } = require("sequelize");
+const helper = require("../helper/app-helper"); // adjust path if needed
+const { reviewRequestFunc } = require("../reviewRequestFunc");
 module.exports.reviewRequestMailSend = async () => {
   try {
-    console.log('review request email cron');
+    console.log("review request email cron");
     let reviewSettings = await db.ReviewSetting.findAll({
       where: {
         store_id: {
           [Op.ne]: null,
         },
-        key: 'review_request_email_timing',
+        key: "review_request_email_timing",
       },
       include: {
         model: db.Store,
         where: {
-          is_uninstalled: '0',
-          email_enable: '1',
+          is_uninstalled: "0",
+          email_enable: "1",
         },
       },
     });
@@ -27,29 +27,29 @@ module.exports.reviewRequestMailSend = async () => {
       let shop = setting.store;
       let value = JSON.parse(setting.value);
       const ismailReached = await helper.isMailLimitReached(shop);
-      const checksettigs = await helper.getMailSettings('ReviewRequestEmails.ReviewRequest', shop.id);
-      console.log('store.id', shop.id, shop.username,checksettigs );
-      if (value.emailTiming >= 0 && !ismailReached&& checksettigs) {
-        let date = moment().subtract(value.emailTiming, 'days').toDate();
-        date = moment(date).format('YYYY-MM-DD');
+      const checksettigs = await helper.getMailSettings("ReviewRequestEmails.ReviewRequest", shop.id);
+      console.log("store.id", shop.id, shop.username, checksettigs);
+      if (value.emailTiming >= 0 && checksettigs) {
+        let date = moment().subtract(value.emailTiming, "days").toDate();
+        date = moment(date).format("YYYY-MM-DD");
         const { start, end } = helper.GetStartEndDate(date, date);
         let options = {};
         let date2 = moment()
-          .subtract(2 * value.emailTiming, 'days')
+          .subtract(2 * value.emailTiming, "days")
           .toDate();
-        date2 = moment(date2).format('YYYY-MM-DD');
+        date2 = moment(date2).format("YYYY-MM-DD");
         const dateObj = helper.GetStartEndDate(date2, date2);
 
         let orderIdArray = await db.Order.findAll({
           where: {
             fulfillment_status: {
-              [Op.in]: ['FULFILLED', 'PARTIAL'],
+              [Op.in]: ["FULFILLED", "PARTIAL"],
             },
             [Op.and]: [
               {
                 order_updated_at: {
                   // [Op.gte]: dateObj.end,
-                  [Op.gte]: '2025-01-01',
+                  [Op.gte]: "2025-01-01",
                 },
               },
               {
@@ -62,24 +62,18 @@ module.exports.reviewRequestMailSend = async () => {
             // created_at:{[Op.gte]:"2025-01-09"},
             store_id: shop.id,
           },
-          attributes: ['id'],
+          attributes: ["id"],
         });
         orderIdArray = orderIdArray.map((order) => order.id);
         options.store_id = shop.id;
-        options.review_status = '0';
-        options.is_review = '0';
+        options.review_status = "0";
+        options.is_review = "0";
         options.order_id = orderIdArray;
         let lineItemsData = await db.OrderItems.findAll({
           where: options,
           include: {
             model: db.Order,
-            attributes: [
-              'id',
-              'customer_id',
-              'order_name',
-              'customer_email',
-              'order_id',
-            ],
+            attributes: ["id", "customer_id", "order_name", "customer_email", "order_id"],
           },
         });
         for (let item of lineItemsData) {
@@ -87,23 +81,12 @@ module.exports.reviewRequestMailSend = async () => {
           // data == {customer_id,order_items:[{line_items_id,product_id,review_status}]}
           if (order.customer_email) {
             let tempCheck = false;
-            if (
-              value.orderStatus == 'delivered' &&
-              item.shipment_status == 'delivered'
-            )
-              tempCheck = true;
-            if (
-              value.orderStatus == 'fulfilled' &&
-              item.fulfillment_status == 'fulfilled'
-            )
-              tempCheck = true;
+            if (value.orderStatus == "delivered" && item.shipment_status == "delivered") tempCheck = true;
+            if (value.orderStatus == "fulfilled" && item.fulfillment_status == "fulfilled") tempCheck = true;
             tempCheck = true;
             if (tempCheck) {
               let orderData = lineItemsData.filter((element) => {
-                return (
-                  item.order_id == element.order_id &&
-                  item.isSelected == undefined
-                );
+                return item.order_id == element.order_id && item.isSelected == undefined;
               });
               if (orderData.length < 1) continue;
               let notReviewedItems = [];
@@ -119,7 +102,7 @@ module.exports.reviewRequestMailSend = async () => {
                 let data = {
                   store_id: shop.id,
                   shop: shop.username,
-                  type: 'review_request_cron',
+                  type: "review_request_cron",
                   domain: shop.main_domain || shop.domain,
                   customer_id: order.customer_id,
                   order_name: order.order_name,
@@ -128,13 +111,12 @@ module.exports.reviewRequestMailSend = async () => {
                   order_items: notReviewedItems,
                   store: shop,
                 };
-                console.log('review request cron  data==>', {
+                console.log("review request cron  data==>", {
                   ...data,
-                  store: 'skipped store',
+                  store: "skipped store",
                 });
                 let returnResp = await reviewRequestFunc(data);
-                if (returnResp.error)
-                  throw new CustomError(400, 'Error to send email');
+                if (returnResp.error) throw new CustomError(400, "Error to send email");
               }
             }
           }
@@ -142,7 +124,7 @@ module.exports.reviewRequestMailSend = async () => {
       }
     }
   } catch (error) {
-    console.log('Error to send review request email send=>>', error);
+    console.log("Error to send review request email send=>>", error);
     throw error;
   }
 };
@@ -152,20 +134,20 @@ exports.reviewRequestReminderEmail = async () => {
     const reviewSettingData = await db.ReviewSetting.findOne({
       where: {
         store_id: null,
-        key: 'review_request_email_reminder',
+        key: "review_request_email_reminder",
       },
     });
 
     const storeData = await db.Store.findAll({
       where: {
-        is_uninstalled: '0',
-        email_enable: '1',
+        is_uninstalled: "0",
+        email_enable: "1",
       },
       include: {
         model: db.ReviewSetting,
         required: false,
         where: {
-          key: 'review_request_email_reminder',
+          key: "review_request_email_reminder",
         },
       },
     });
@@ -176,29 +158,24 @@ exports.reviewRequestReminderEmail = async () => {
       }
       const reviewSetting = store.review_settings[0];
       const value = JSON.parse(reviewSetting.value);
-      console.log('store.id', store.id, store.username);
+      console.log("store.id", store.id, store.username);
       const ismailReached = await helper.isMailLimitReached(store);
-      if (value.emailReminderTiming >= 0 && !ismailReached) {
+   
+      if (value.emailReminderTiming >= 0) {
         // Get all eligible order items
         const orderItems = await db.OrderItems.findAll({
           where: {
             store_id: store.id,
-            review_status: '1',
-            is_review: '0',
+            review_status: "1",
+            is_review: "0",
             email_reminder_count: {
               [Op.lt]: value.emailReminderCount,
             },
-            created_at: { [Op.gte]: '2025-01-01' },
+            created_at: { [Op.gte]: "2025-01-01" },
           },
           include: {
             model: db.Order,
-            attributes: [
-              'id',
-              'customer_id',
-              'order_name',
-              'customer_email',
-              'order_id',
-            ],
+            attributes: ["id", "customer_id", "order_name", "customer_email", "order_id"],
           },
         });
         // Group items by order_id
@@ -206,18 +183,15 @@ exports.reviewRequestReminderEmail = async () => {
         const currentDate = moment();
 
         for (const item of orderItems) {
-          const lastEmailDate =
-            item.email_reminder_count > 0
-              ? moment(item.email_reminder_date)
-              : moment(item.email_sent_date);
+          const lastEmailDate = item.email_reminder_count > 0 ? moment(item.email_reminder_date) : moment(item.email_sent_date);
 
           // Calculate days elapsed since last email
-          const daysElapsed = currentDate.diff(lastEmailDate, 'days');
+          const daysElapsed = currentDate.diff(lastEmailDate, "days");
           if (daysElapsed >= value.emailReminderTiming) {
             const orderItem = {
               line_item_id: item.line_item_id,
               product_id: item.product_id,
-              review_status: '0',
+              review_status: "0",
               email_reminder_count: item.email_reminder_count,
             };
 
@@ -241,13 +215,13 @@ exports.reviewRequestReminderEmail = async () => {
             };
 
             if (emailData?.order_items?.length > 0) {
-              console.log('review reminder cron  data==>', {
+              console.log("review reminder cron  data==>", {
                 ...emailData,
-                store: 'skipped store',
+                store: "skipped store",
               });
               let returnResp = await reviewRequestFunc(emailData);
               if (returnResp.error) {
-                throw new CustomError(400, 'Error to send email');
+                throw new CustomError(400, "Error to send email");
               }
             }
           }
@@ -255,7 +229,7 @@ exports.reviewRequestReminderEmail = async () => {
       }
     }
   } catch (error) {
-    console.log('Error to send review request email send=>>', error);
+    console.log("Error to send review request email send=>>", error);
     throw error;
   }
 };
@@ -270,10 +244,10 @@ const insertOrderData = (order, shop) => {
       domain: shop.main_domain || shop.domain,
       customer_id: order.customer_id,
       order_name: order.order_name,
-      type: 'review_request_reminder_cron',
+      type: "review_request_reminder_cron",
     };
   } catch (error) {
-    console.log('insertOrderData error', error);
+    console.log("insertOrderData error", error);
     throw error;
   }
 };

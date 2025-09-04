@@ -1,27 +1,17 @@
-const CustomError = require('./errors/CustomError');
-const Cryptr = require('cryptr');
-const CONFIG = require('../config');
-const db = require('../models');
-const sgMail = require('@sendgrid/mail');
-const { defaultImage } = require('../config');
-const moment = require('moment');
-const algorithm = 'aes-256-ctr';
-const fetch = require('node-fetch');
-const axios = require('axios');
-const mailchimp = require('@mailchimp/mailchimp_marketing');
+const CustomError = require("./errors/CustomError");
+const Cryptr = require("cryptr");
+const CONFIG = require("../config");
+const db = require("../models");
+const sgMail = require("@sendgrid/mail");
+const { defaultImage } = require("../config");
+const moment = require("moment");
+const algorithm = "aes-256-ctr";
+const fetch = require("node-fetch");
+const axios = require("axios");
+const mailchimp = require("@mailchimp/mailchimp_marketing");
 let klaviyo_url = CONFIG.KLAVIYO.klaviyo_url;
-const { Op, fn, col, literal, Sequelize } = require('sequelize');
-const insertEmailLogs = async ({
-  store_id,
-  email_type,
-  sent_type,
-  email_sent_date,
-  message,
-  email_message_id,
-  order_id = null,
-  email_client = 'Retenzy',
-  event_type = null,
-}) => {
+const { Op, fn, col, literal, Sequelize } = require("sequelize");
+const insertEmailLogs = async ({ store_id, email_type, sent_type, email_sent_date, message, email_message_id, order_id = null, email_client = "Retenzy", event_type = null }) => {
   try {
     const emailLogRes = await db.EmailLogs.create({
       store_id,
@@ -48,15 +38,9 @@ exports.getPagingData = (responseData, page, limit) => {
 
 exports.cryptoEncryption = (message) => {
   try {
-    const SALT = 'somethingrandom';
+    const SALT = "somethingrandom";
     const IV_LENGTH = 16;
-    let key = crypto.pbkdf2Sync(
-      CONFIG.cryptoPassword,
-      SALT,
-      10000,
-      32,
-      'sha512'
-    );
+    let key = crypto.pbkdf2Sync(CONFIG.cryptoPassword, SALT, 10000, 32, "sha512");
     const NONCE_LENGTH = 5;
     let nonce = crypto.randomBytes(NONCE_LENGTH);
     let iv = Buffer.alloc(IV_LENGTH);
@@ -64,27 +48,21 @@ exports.cryptoEncryption = (message) => {
     let cipher = crypto.createCipheriv(algorithm, key, iv);
     let encrypted = cipher.update(message.toString());
     message = Buffer.concat([nonce, encrypted, cipher.final()]);
-    let encryptedData = message.toString('hex');
+    let encryptedData = message.toString("hex");
     return encryptedData;
   } catch (error) {
     console.log(error);
-    throw new CustomError(401, 'Unauthorized');
+    throw new CustomError(401, "Unauthorized");
   }
 };
 
 exports.cryptoDecryption = (text) => {
   try {
-    const SALT = 'somethingrandom';
+    const SALT = "somethingrandom";
     const IV_LENGTH = 16;
-    let key = crypto.pbkdf2Sync(
-      CONFIG.cryptoPassword,
-      SALT,
-      10000,
-      32,
-      'sha512'
-    );
+    let key = crypto.pbkdf2Sync(CONFIG.cryptoPassword, SALT, 10000, 32, "sha512");
     const NONCE_LENGTH = 5;
-    let message = Buffer.from(text, 'hex');
+    let message = Buffer.from(text, "hex");
     let iv = Buffer.alloc(IV_LENGTH);
     message.copy(iv, 0, 0, NONCE_LENGTH);
     let encryptedText = message.slice(NONCE_LENGTH);
@@ -94,7 +72,7 @@ exports.cryptoDecryption = (text) => {
     return decrypted.toString();
   } catch (error) {
     console.log(error);
-    throw new CustomError(401, 'Unauthorized');
+    throw new CustomError(401, "Unauthorized");
   }
 };
 
@@ -105,7 +83,7 @@ exports.encrypt = (message) => {
     return encryptedData;
   } catch (error) {
     console.log(error);
-    throw new CustomError(401, 'Unauthorized');
+    throw new CustomError(401, "Unauthorized");
   }
 };
 
@@ -116,35 +94,33 @@ exports.decrypt = (message) => {
     return encryptedData;
   } catch (error) {
     console.log(error);
-    throw new CustomError(401, 'Unauthorized');
+    throw new CustomError(401, "Unauthorized");
   }
 };
 
 exports.reviewDemoFile = async () => {
   let demoReviewArray = [
     {
-      customer_email: 'test@gmail.com',
-      customer_name: 'test',
+      customer_email: "test@gmail.com",
+      customer_name: "test",
       rating: 5,
-      review: 'Awesome Product',
-      handle: 'product Handle',
-      status: 'published',
-      source: 'imported',
-      review_date: '2022-07-18T09:08:00',
-      review_images:
-        'https://thevital-production.s3.us-east-2.amazonaws.com/review-1706770903409-istockphoto-1304157246-612x612.jpg',
+      review: "Awesome Product",
+      handle: "product Handle",
+      status: "published",
+      source: "imported",
+      review_date: "2022-07-18T09:08:00",
+      review_images: "https://thevital-production.s3.us-east-2.amazonaws.com/review-1706770903409-istockphoto-1304157246-612x612.jpg",
     },
     {
-      customer_email: 'test2@gmail.com',
-      customer_name: 'test2',
+      customer_email: "test2@gmail.com",
+      customer_name: "test2",
       rating: 4,
-      review: 'Nice',
-      handle: 'Second product Handle',
-      status: 'hidden',
-      source: 'imported',
-      review_date: '2022-07-19T10:02:00',
-      review_images:
-        'https://thevital-production.s3.us-east-2.amazonaws.com/review-1663930859025-test.jpg',
+      review: "Nice",
+      handle: "Second product Handle",
+      status: "hidden",
+      source: "imported",
+      review_date: "2022-07-19T10:02:00",
+      review_images: "https://thevital-production.s3.us-east-2.amazonaws.com/review-1663930859025-test.jpg",
     },
   ];
   return demoReviewArray;
@@ -152,31 +128,31 @@ exports.reviewDemoFile = async () => {
 
 exports.setReviewStatus = async (store_id, rating) => {
   let statusValue,
-    status = 'hidden',
+    status = "hidden",
     reviewSettingResponse;
   try {
     reviewSettingResponse = await db.ReviewSetting.findOne({
-      where: { store_id: store_id, key: 'review_publish_status' },
-      attributes: ['value'],
+      where: { store_id: store_id, key: "review_publish_status" },
+      attributes: ["value"],
     });
     if (!reviewSettingResponse) {
       reviewSettingResponse = await db.ReviewSetting.findOne({
-        where: { store_id: null, key: 'review_publish_status' },
-        attributes: ['value'],
+        where: { store_id: null, key: "review_publish_status" },
+        attributes: ["value"],
       });
     }
     statusValue = JSON.parse(reviewSettingResponse.value).publishReviewStatus;
 
-    if (statusValue == 'all') {
-      status = 'published';
-    } else if (statusValue != 'never') {
+    if (statusValue == "all") {
+      status = "published";
+    } else if (statusValue != "never") {
       if (statusValue <= rating) {
-        status = 'published';
+        status = "published";
       }
     }
     return status;
   } catch (error) {
-    console.log('error', error);
+    console.log("error", error);
     return statusValue;
   }
 };
@@ -196,7 +172,7 @@ exports.GetStartEndDate = (start_date, end_date) => {
 exports.GetStartEndDateTimeZone = (start_date, end_date, timezone) => {
   let start = moment.tz(start_date, timezone).format();
   start = moment(start).utc();
-  var end = moment.tz(end_date, timezone).endOf('days').format();
+  var end = moment.tz(end_date, timezone).endOf("days").format();
   end = moment(end).utc();
   return { start, end };
 };
@@ -221,173 +197,173 @@ exports.pricingPlanCustomerErrorMessage = {
 exports.getCurrencySymbols = (symbol) => {
   try {
     let currecySymbol = {
-      AED: 'د.إ', // ?
-      AFN: 'Af',
-      ALL: 'Lek',
-      AMD: '',
-      ANG: 'ƒ',
-      AOA: 'Kz', // ?
-      ARS: '$',
-      AUD: '$',
-      AWG: 'ƒ',
-      AZN: 'мaн',
-      BAM: 'KM',
-      BBD: '$',
-      BDT: '৳', // ?
-      BGN: 'лв',
-      BHD: '.د.ب', // ?
-      BIF: 'FBu', // ?
-      BMD: '$',
-      BND: '$',
-      BOB: '$b',
-      BRL: 'R$',
-      BSD: '$',
-      BTN: 'Nu.', // ?
-      BWP: 'P',
-      BYR: 'p.',
-      BZD: 'BZ$',
-      CAD: '$',
-      CDF: 'FC',
-      CHF: 'CHF',
-      CLF: '', // ?
-      CLP: '$',
-      CNY: '¥',
-      COP: '$',
-      CRC: '₡',
-      CUP: '⃌',
-      CVE: '$', // ?
-      CZK: 'Kč',
-      DJF: 'Fdj', // ?
-      DKK: 'kr',
-      DOP: 'RD$',
-      DZD: 'دج', // ?
-      EGP: '£',
-      ETB: 'Br',
-      EUR: '€',
-      FJD: '$',
-      FKP: '£',
-      GBP: '£',
-      GEL: 'ლ', // ?
-      GHS: '¢',
-      GIP: '£',
-      GMD: 'D', // ?
-      GNF: 'FG', // ?
-      GTQ: 'Q',
-      GYD: '$',
-      HKD: '$',
-      HNL: 'L',
-      HRK: 'kn',
-      HTG: 'G', // ?
-      HUF: 'Ft',
-      IDR: 'Rp',
-      ILS: '₪',
-      INR: '₹',
-      IQD: 'ع.د', // ?
-      IRR: '﷼',
-      ISK: 'kr',
-      JEP: '£',
-      JMD: 'J$',
-      JOD: 'JD', // ?
-      JPY: '¥',
-      KES: 'KSh', // ?
-      KGS: 'лв',
-      KHR: '៛',
-      KMF: 'CF', // ?
-      KPW: '₩',
-      KRW: '₩',
-      KWD: 'د.ك', // ?
-      KYD: '$',
-      KZT: 'лв',
-      LAK: '₭',
-      LBP: '£',
-      LKR: '₨',
-      LRD: '$',
-      LSL: 'L', // ?
-      LTL: 'Lt',
-      LVL: 'Ls',
-      LYD: 'ل.د', // ?
-      MAD: 'د.م.', //?
-      MDL: 'L',
-      MGA: 'Ar', // ?
-      MKD: 'дeн',
-      MMK: 'K',
-      MNT: '₮',
-      MOP: 'MOP$', // ?
-      MRO: 'UM', // ?
-      MUR: '₨', // ?
-      MVR: '.ރ', // ?
-      MWK: 'MK',
-      MXN: '$',
-      MYR: 'RM',
-      MZN: 'MT',
-      NAD: '$',
-      NGN: '₦',
-      NIO: 'C$',
-      NOK: 'kr',
-      NPR: '₨',
-      NZD: '$',
-      OMR: '﷼',
-      PAB: 'B/.',
-      PEN: 'S/.',
-      PGK: 'K', // ?
-      PHP: '₱',
-      PKR: '₨',
-      PLN: 'zł',
-      PYG: 'Gs',
-      QAR: '﷼',
-      RON: 'lei',
-      RSD: 'Дин.',
-      RUB: 'py6',
-      RWF: 'ر.س',
-      SAR: '﷼',
-      SBD: '$',
-      SCR: '₨',
-      SDG: '£', // ?
-      SEK: 'kr',
-      SGD: '$',
-      SHP: '£',
-      SLL: 'Le', // ?
-      SOS: 'S',
-      SRD: '$',
-      STD: 'Db', // ?
-      SVC: '$',
-      SYP: '£',
-      SZL: 'L', // ?
-      THB: '฿',
-      TJS: 'TJS', // ? TJS (guess)
-      TMT: 'm',
-      TND: 'د.ت',
-      TOP: 'T$',
-      TRY: '₤', // New Turkey Lira (old symbol used)
-      TTD: '$',
-      TWD: 'NT$',
-      TZS: '',
-      UAH: '₴',
-      UGX: 'USh',
-      USD: '$',
-      UYU: '$U',
-      UZS: 'лв',
-      VEF: 'Bs',
-      VND: '₫',
-      VUV: 'VT',
-      WST: 'WS$',
-      XAF: 'FCFA',
-      XCD: '$',
-      XDR: '',
-      XOF: '',
-      XPF: 'F',
-      YER: '﷼',
-      ZAR: 'R',
-      ZMK: 'ZK', // ?
-      ZWL: 'Z$',
+      AED: "د.إ", // ?
+      AFN: "Af",
+      ALL: "Lek",
+      AMD: "",
+      ANG: "ƒ",
+      AOA: "Kz", // ?
+      ARS: "$",
+      AUD: "$",
+      AWG: "ƒ",
+      AZN: "мaн",
+      BAM: "KM",
+      BBD: "$",
+      BDT: "৳", // ?
+      BGN: "лв",
+      BHD: ".د.ب", // ?
+      BIF: "FBu", // ?
+      BMD: "$",
+      BND: "$",
+      BOB: "$b",
+      BRL: "R$",
+      BSD: "$",
+      BTN: "Nu.", // ?
+      BWP: "P",
+      BYR: "p.",
+      BZD: "BZ$",
+      CAD: "$",
+      CDF: "FC",
+      CHF: "CHF",
+      CLF: "", // ?
+      CLP: "$",
+      CNY: "¥",
+      COP: "$",
+      CRC: "₡",
+      CUP: "⃌",
+      CVE: "$", // ?
+      CZK: "Kč",
+      DJF: "Fdj", // ?
+      DKK: "kr",
+      DOP: "RD$",
+      DZD: "دج", // ?
+      EGP: "£",
+      ETB: "Br",
+      EUR: "€",
+      FJD: "$",
+      FKP: "£",
+      GBP: "£",
+      GEL: "ლ", // ?
+      GHS: "¢",
+      GIP: "£",
+      GMD: "D", // ?
+      GNF: "FG", // ?
+      GTQ: "Q",
+      GYD: "$",
+      HKD: "$",
+      HNL: "L",
+      HRK: "kn",
+      HTG: "G", // ?
+      HUF: "Ft",
+      IDR: "Rp",
+      ILS: "₪",
+      INR: "₹",
+      IQD: "ع.د", // ?
+      IRR: "﷼",
+      ISK: "kr",
+      JEP: "£",
+      JMD: "J$",
+      JOD: "JD", // ?
+      JPY: "¥",
+      KES: "KSh", // ?
+      KGS: "лв",
+      KHR: "៛",
+      KMF: "CF", // ?
+      KPW: "₩",
+      KRW: "₩",
+      KWD: "د.ك", // ?
+      KYD: "$",
+      KZT: "лв",
+      LAK: "₭",
+      LBP: "£",
+      LKR: "₨",
+      LRD: "$",
+      LSL: "L", // ?
+      LTL: "Lt",
+      LVL: "Ls",
+      LYD: "ل.د", // ?
+      MAD: "د.م.", //?
+      MDL: "L",
+      MGA: "Ar", // ?
+      MKD: "дeн",
+      MMK: "K",
+      MNT: "₮",
+      MOP: "MOP$", // ?
+      MRO: "UM", // ?
+      MUR: "₨", // ?
+      MVR: ".ރ", // ?
+      MWK: "MK",
+      MXN: "$",
+      MYR: "RM",
+      MZN: "MT",
+      NAD: "$",
+      NGN: "₦",
+      NIO: "C$",
+      NOK: "kr",
+      NPR: "₨",
+      NZD: "$",
+      OMR: "﷼",
+      PAB: "B/.",
+      PEN: "S/.",
+      PGK: "K", // ?
+      PHP: "₱",
+      PKR: "₨",
+      PLN: "zł",
+      PYG: "Gs",
+      QAR: "﷼",
+      RON: "lei",
+      RSD: "Дин.",
+      RUB: "py6",
+      RWF: "ر.س",
+      SAR: "﷼",
+      SBD: "$",
+      SCR: "₨",
+      SDG: "£", // ?
+      SEK: "kr",
+      SGD: "$",
+      SHP: "£",
+      SLL: "Le", // ?
+      SOS: "S",
+      SRD: "$",
+      STD: "Db", // ?
+      SVC: "$",
+      SYP: "£",
+      SZL: "L", // ?
+      THB: "฿",
+      TJS: "TJS", // ? TJS (guess)
+      TMT: "m",
+      TND: "د.ت",
+      TOP: "T$",
+      TRY: "₤", // New Turkey Lira (old symbol used)
+      TTD: "$",
+      TWD: "NT$",
+      TZS: "",
+      UAH: "₴",
+      UGX: "USh",
+      USD: "$",
+      UYU: "$U",
+      UZS: "лв",
+      VEF: "Bs",
+      VND: "₫",
+      VUV: "VT",
+      WST: "WS$",
+      XAF: "FCFA",
+      XCD: "$",
+      XDR: "",
+      XOF: "",
+      XPF: "F",
+      YER: "﷼",
+      ZAR: "R",
+      ZMK: "ZK", // ?
+      ZWL: "Z$",
     };
-    let currencyResponse = 'amount';
+    let currencyResponse = "amount";
     if (currecySymbol[symbol] != undefined) {
       currencyResponse = currecySymbol[symbol];
     }
     return currencyResponse;
   } catch (err) {
-    throw new Error('Unknown currency formate');
+    throw new Error("Unknown currency formate");
   }
 };
 
@@ -399,8 +375,8 @@ exports.sendCustomerEmail = async (mailObject) => {
     if (response.status === true) {
       const emailLogsObj = {
         store_id: mailObject.store.id,
-        email_type: 'Reward',
-        sent_type: 'auto',
+        email_type: "Reward",
+        sent_type: "auto",
         email_sent_date: new Date(),
         message: `Credit recieved - auto | Customer: ${mailObject.customer.customer_email} | Recieved ${mailObject?.rule?.point} for ${mailObject.type}`,
         email_message_id: response?.message_id,
@@ -408,16 +384,10 @@ exports.sendCustomerEmail = async (mailObject) => {
         email_client: response?.mailClient,
       };
 
-      const [_, creditLogs] = await Promise.all([
-        insertEmailLogs(emailLogsObj),
-        db.CreditLogs.findOne({ where: { id: mailObject.id } }),
-      ]);
+      const [_, creditLogs] = await Promise.all([insertEmailLogs(emailLogsObj), db.CreditLogs.findOne({ where: { id: mailObject.id } })]);
 
       if (creditLogs) {
-        await db.CreditLogs.update(
-          { is_email_send: '1' },
-          { where: { id: mailObject.id } }
-        );
+        await db.CreditLogs.update({ is_email_send: "1" }, { where: { id: mailObject.id } });
       }
     }
 
@@ -427,16 +397,15 @@ exports.sendCustomerEmail = async (mailObject) => {
   }
 };
 
-
 exports.getProductsHtml = (mailObject) => {
   try {
     const htmlRows = mailObject.products.map((product, index) => {
       const imageUrl = product.image_url || CONFIG.defaultImage;
-      const title = product.title.length > 20 ? product.title.slice(0, 20) + '...' : product.title;
-      const reviewUrl = product.reviewUrl || '#';
+      const title = product.title.length > 20 ? product.title.slice(0, 20) + "..." : product.title;
+      const reviewUrl = product.reviewUrl || "#";
 
-      let html = '';
-      if (index % 2 === 0) html += '<tr>';
+      let html = "";
+      if (index % 2 === 0) html += "<tr>";
 
       html += `
         <td style="border: 2px solid #e5e2e2; border-radius: 4px; overflow: hidden; line-height: normal; width: 50%; vertical-align: top; padding: 10px;">
@@ -449,7 +418,7 @@ exports.getProductsHtml = (mailObject) => {
           </div>
         </td>`;
 
-      if (index % 2 === 1) html += '</tr>';
+      if (index % 2 === 1) html += "</tr>";
       return html;
     });
 
@@ -457,24 +426,20 @@ exports.getProductsHtml = (mailObject) => {
       htmlRows.push('<td style="border: none;"></td></tr>');
     }
 
-    return `<table style="width: 100%; border-collapse: separate; border-spacing: 20px; padding: 4% 2% 2% 2%;">${htmlRows.join('')}</table>`;
+    return `<table style="width: 100%; border-collapse: separate; border-spacing: 20px; padding: 4% 2% 2% 2%;">${htmlRows.join("")}</table>`;
   } catch (error) {
-    console.log('getProductsHtml,error', error);
+    console.log("getProductsHtml,error", error);
     return { success: false, error: error?.message || error };
   }
 };
 
-
 exports.reviewRequest = async (mailObject) => {
   try {
-    console.log('inside review request mail function');
+    console.log("inside review request mail function");
     let response;
     if (parseInt(mailObject.store.email_enable)) {
-      console.log('mail is enable');
-      if (
-        mailObject.store.email_notification == 'retenzy' ||
-        mailObject.store.email_notification == 'sendgrid'
-      ) {
+      console.log("mail is enable");
+      if (mailObject.store.email_notification == "retenzy" || mailObject.store.email_notification == "sendgrid") {
         let productsHtml = this.getProductsHtml(mailObject);
         mailObject.products = productsHtml;
         response = await this.sendgridSendDynamicMail(mailObject);
@@ -496,29 +461,20 @@ exports.reviewRequest = async (mailObject) => {
           order_name: mailObject.order.name,
         },
       };
-      if (mailObject.store.email_notification == 'klaviyo') {
-        console.log('console bedore event send to klaviyo');
-        response = await this.sendEventToKlaviyo(
-          mailObject.store.id,
-          eventdata
-        );
-        console.log('console after event send to klaviyo');
+      if (mailObject.store.email_notification == "klaviyo") {
+        console.log("console bedore event send to klaviyo");
+        response = await this.sendEventToKlaviyo(mailObject.store.id, eventdata);
+        console.log("console after event send to klaviyo");
         if (response.error) throw new CustomError(500, response.error);
         return response;
       }
-      if (mailObject.store.email_notification == 'mailchimp') {
-        response = await this.sendEventToMailchimp(
-          mailObject.store.id,
-          eventdata
-        );
+      if (mailObject.store.email_notification == "mailchimp") {
+        response = await this.sendEventToMailchimp(mailObject.store.id, eventdata);
         if (response.error) throw new CustomError(500, response.error);
         return response;
       }
-      if (mailObject.store.email_notification == 'omnisend') {
-        response = await this.sendEventToOmnisend(
-          mailObject.store.id,
-          eventdata
-        );
+      if (mailObject.store.email_notification == "omnisend") {
+        response = await this.sendEventToOmnisend(mailObject.store.id, eventdata);
 
         if (response.error) throw new CustomError(500, response.error);
         return response;
@@ -526,14 +482,13 @@ exports.reviewRequest = async (mailObject) => {
     }
     return {
       status: false,
-      message: 'Email notification is disabled for this store',
+      message: "Email notification is disabled for this store",
     };
   } catch (error) {
-    console.log('reviewRequest error=>>', error);
+    console.log("reviewRequest error=>>", error);
     return {
       status: false,
-      message:
-        error?.response?.body?.errors[0]?.message || error?.message || error,
+      message: error?.response?.body?.errors[0]?.message || error?.message || error,
     };
   }
 };
@@ -541,8 +496,8 @@ exports.reviewRequest = async (mailObject) => {
 exports.sendgridSendMail = async (Obj) => {
   try {
     const sendGridData = await db.Integration.findOne({
-      where: { store_id: null, app: 'sendgrid' },
-      attributes: ['credential'],
+      where: { store_id: null, app: "sendgrid" },
+      attributes: ["credential"],
     });
 
     if (sendGridData) {
@@ -559,21 +514,20 @@ exports.sendgridSendMail = async (Obj) => {
       };
 
       const response = await sgMail.send(template);
-      if (response.error) throw new Error('Mail not sent');
+      if (response.error) throw new Error("Mail not sent");
     }
 
-    return { status: true, message: 'SUCCESS' };
+    return { status: true, message: "SUCCESS" };
   } catch (error) {
-    console.log('sendgridSendMail error:', error?.response?.body?.errors || error);
-    return { status: false, message: 'Internal server error' };
+    console.log("sendgridSendMail error:", error?.response?.body?.errors || error);
+    return { status: false, message: "Internal server error" };
   }
 };
-
 
 exports.sendgridSendMail = async (Obj) => {
   try {
     var sendGridData = await db.Integration.findOne({
-      where: { store_id: null, app: 'sendgrid' },
+      where: { store_id: null, app: "sendgrid" },
     });
     if (sendGridData) {
       let key = JSON.parse(this.decrypt(sendGridData.credential));
@@ -587,21 +541,19 @@ exports.sendgridSendMail = async (Obj) => {
       };
       if (Obj.cc) template.cc = Obj.cc;
       let response = await sgMail.send(template);
-      if (response.error) throw new Error('Mail not sent');
+      if (response.error) throw new Error("Mail not sent");
     }
-    return { status: true, message: 'SUCCESS' };
+    return { status: true, message: "SUCCESS" };
   } catch (error) {
-    error.response && error.response.body.errors
-      ? console.log('error in sendgridSendMail', error.response.body.errors)
-      : console.log('err============1', error);
-    return { status: false, message: 'Internal server error' };
+    error.response && error.response.body.errors ? console.log("error in sendgridSendMail", error.response.body.errors) : console.log("err============1", error);
+    return { status: false, message: "Internal server error" };
   }
 };
 
 exports.sendForgotPasswordMail = async (Obj) => {
   try {
     let sendGridData = await db.Integration.findOne({
-      where: { store_id: null, app: 'sendgrid' },
+      where: { store_id: null, app: "sendgrid" },
     });
 
     if (sendGridData) {
@@ -618,12 +570,12 @@ exports.sendForgotPasswordMail = async (Obj) => {
       if (Obj.cc) template.cc = Obj.cc;
 
       let response = await sgMail.send(template);
-      if (response.error) throw new Error('Mail not sent');
+      if (response.error) throw new Error("Mail not sent");
     }
-    return { status: true, message: 'SUCCESS' };
+    return { status: true, message: "SUCCESS" };
   } catch (error) {
-    console.log('sendForgotPasswordMail error222', error);
-    return { status: false, message: 'Internal server error', error: error };
+    console.log("sendForgotPasswordMail error222", error);
+    return { status: false, message: "Internal server error", error: error };
   }
 };
 
@@ -653,16 +605,16 @@ exports.sendgridSendDynamicMail = async (Obj) => {
     };
 
     const response = await sgMail.send(template);
-    if (response.error) throw new Error('Mail not sent');
+    if (response.error) throw new Error("Mail not sent");
 
     return {
       status: true,
-      message: 'SUCCESS',
-      message_id: response[0]?.headers['x-message-id'],
+      message: "SUCCESS",
+      message_id: response[0]?.headers["x-message-id"],
       mailClient: sendgridData.client,
     };
   } catch (error) {
-    console.log('sendgridSendDynamicMail error:', error?.response?.body?.errors || error);
+    console.log("sendgridSendDynamicMail error:", error?.response?.body?.errors || error);
     return {
       status: false,
       error: error?.response?.body?.errors?.[0]?.message || error?.message || error,
@@ -673,7 +625,7 @@ exports.sendgridSendDynamicMail = async (Obj) => {
 exports.sendReviewMail = async (mailObject, file) => {
   try {
     let sendGridData = await db.Integration.findOne({
-      where: { store_id: null, app: 'sendgrid' },
+      where: { store_id: null, app: "sendgrid" },
     });
     if (sendGridData) {
       let key = JSON.parse(this.decrypt(sendGridData.credential)).key;
@@ -683,54 +635,53 @@ exports.sendReviewMail = async (mailObject, file) => {
         to: `${mailObject.clientEmail}`,
         from: `${mailObject.shop} <${CONFIG.EMAIL.SENDERMAIL}>`,
         subject: `Customer review file`,
-        text: 'file',
+        text: "file",
         attachments: [
           {
-            content: new Buffer(file).toString('base64'),
-            filename: 'Reviews.csv',
-            type: 'application/pdf',
-            disposition: 'attachment',
+            content: new Buffer(file).toString("base64"),
+            filename: "Reviews.csv",
+            type: "application/pdf",
+            disposition: "attachment",
           },
         ],
         bcc: CONFIG.EMAIL.BCC_MAIL,
       };
       let response = await sgMail.send(template);
-      if (response.error)
-        throw new CustomError(500, response.error.response.body);
+      if (response.error) throw new CustomError(500, response.error.response.body);
     }
     return true;
   } catch (error) {
-    console.log('error', error);
+    console.log("error", error);
     return false;
   }
 };
 exports.ordinal_suffix_of = (amount) => {
-  if (typeof amount != 'number') {
+  if (typeof amount != "number") {
     amount = Number(amount) ? Number(amount) : 0;
   }
   var j = amount % 10,
     k = amount % 100;
   if (j == 1 && k != 11) {
-    return amount + 'st';
+    return amount + "st";
   }
   if (j == 2 && k != 12) {
-    return amount + 'nd';
+    return amount + "nd";
   }
   if (j == 3 && k != 13) {
-    return amount + 'rd';
+    return amount + "rd";
   }
-  return amount + 'th';
+  return amount + "th";
 };
 exports.customername = (first_name, last_name) => {
   try {
-    let customer_name = `${first_name || ''} ${last_name || ''}`;
+    let customer_name = `${first_name || ""} ${last_name || ""}`;
     if (!customer_name.trim()) {
-      customer_name = 'User';
+      customer_name = "User";
     }
     return customer_name;
   } catch (error) {
-    console.log('error', error);
-    return 'User';
+    console.log("error", error);
+    return "User";
   }
 };
 const sendGridCache = new Map();
@@ -739,21 +690,21 @@ exports.getSendGridDetails = async (store_id) => {
   if (sendGridCache.has(store_id)) return sendGridCache.get(store_id);
 
   try {
-    let client = 'sendgrid';
+    let client = "sendgrid";
     let integration = await db.Integration.findOne({
-      where: { store_id, app: 'sendgrid' },
-      attributes: ['credential', 'otherData'],
+      where: { store_id, app: "sendgrid" },
+      attributes: ["credential", "otherData"],
     });
 
     if (!integration) {
       integration = await db.Integration.findOne({
-        where: { store_id: null, app: 'sendgrid' },
-        attributes: ['credential', 'otherData'],
+        where: { store_id: null, app: "sendgrid" },
+        attributes: ["credential", "otherData"],
       });
-      client = 'Retenzy';
+      client = "Retenzy";
     }
 
-    if (!integration) throw new Error('SendGrid integration not found');
+    if (!integration) throw new Error("SendGrid integration not found");
 
     const data = JSON.parse(integration.dataValues.otherData);
     const apikey = JSON.parse(this.decrypt(integration.dataValues.credential));
@@ -770,11 +721,10 @@ exports.getSendGridDetails = async (store_id) => {
     sendGridCache.set(store_id, sendgridObj);
     return sendgridObj;
   } catch (error) {
-    console.log('getSendGridDetails error:', error);
+    console.log("getSendGridDetails error:", error);
     return { success: false, error: error?.message || error };
   }
 };
-
 
 exports.getProductsHtmlForDeal = async (product_ids, store, isTestMail) => {
   try {
@@ -782,14 +732,14 @@ exports.getProductsHtmlForDeal = async (product_ids, store, isTestMail) => {
     if (isTestMail) {
       productResponse = await db.Products.findAll({
         where: { store_id: store.id },
-        attributes: ['id', 'product_id', 'title', 'handle'],
+        attributes: ["id", "product_id", "title", "handle"],
         include: [
           {
             model: db.ProductVariants,
-            attributes: ['id', 'title', 'price', 'variant_id'],
+            attributes: ["id", "title", "price", "variant_id"],
             include: {
               model: db.ProductImages,
-              attributes: ['image_url'],
+              attributes: ["image_url"],
             },
           },
         ],
@@ -798,55 +748,45 @@ exports.getProductsHtmlForDeal = async (product_ids, store, isTestMail) => {
     } else {
       productResponse = await db.Products.findAll({
         where: { id: product_ids, store_id: store.id },
-        attributes: ['id', 'product_id', 'title', 'handle'],
+        attributes: ["id", "product_id", "title", "handle"],
         include: [
           {
             model: db.ProductVariants,
-            attributes: ['id', 'title', 'price', 'variant_id'],
+            attributes: ["id", "title", "price", "variant_id"],
             include: {
               model: db.ProductImages,
-              attributes: ['image_url'],
+              attributes: ["image_url"],
             },
           },
         ],
       });
     }
 
-    console.log('productResponse', productResponse);
+    console.log("productResponse", productResponse);
 
     let html = `<table style="width: 100%; border-collapse: separate; border-spacing: 20px;">`;
     productResponse.slice(0, 4).map((product, index) => {
       // Add a new row for every two products
       if (index % 2 === 0) {
-        html += '<tr>';
+        html += "<tr>";
       }
 
       html += `
         <td style="border: 2px solid #e5e2e2; border-radius: 4px; overflow: hidden; line-height: normal; width: 50%; vertical-align: top; padding: 5px;">
           <img alt='image_${index}'
-            src="${
-              product.product_variants[0].product_image?.image_url
-                ? product.product_variants[0].product_image?.image_url
-                : CONFIG.defaultImage
-            }"
+            src="${product.product_variants[0].product_image?.image_url ? product.product_variants[0].product_image?.image_url : CONFIG.defaultImage}"
             style="width: 120px; height: 160px; max-height: 200px; object-fit: cover; border-radius: 4px;">
           <div>
-            <p style="font-family: Arial; color: #010101; font-size: 14px; margin: 8px 0; text-align: center; padding: 2% 4%;">${
-              product.title.length > 20
-                ? product.title.slice(0, 20) + '...'
-                : product.title
-            }</p>
+            <p style="font-family: Arial; color: #010101; font-size: 14px; margin: 8px 0; text-align: center; padding: 2% 4%;">${product.title.length > 20 ? product.title.slice(0, 20) + "..." : product.title}</p>
             <div style="text-align: center; font-size: 14px; font-family: Arial; padding-bottom: 4%;">
-              <a href="https://${
-                store.domain
-              }/account#/deals" target="_blank" style="display: inline-block; text-decoration: none; background-color: black; color: #FFFFFF; border-radius: 4px; padding: 8px 16px;">Buy Now</a>
+              <a href="https://${store.domain}/account#/deals" target="_blank" style="display: inline-block; text-decoration: none; background-color: black; color: #FFFFFF; border-radius: 4px; padding: 8px 16px;">Buy Now</a>
             </div>
           </div>
         </td>`;
 
       // Close the row after two products
       if (index % 2 === 1) {
-        html += '</tr>';
+        html += "</tr>";
       }
     });
 
@@ -858,7 +798,7 @@ exports.getProductsHtmlForDeal = async (product_ids, store, isTestMail) => {
     html += `</table>`;
     return html;
   } catch (error) {
-    console.log('getProductsHtml, error', error);
+    console.log("getProductsHtml, error", error);
     return { success: false, error: error?.message || error };
   }
 };
@@ -872,7 +812,7 @@ exports.getMailTemplate = async (data) => {
         where: {
           store_id: data.store.id,
           template_key: data.type,
-          is_active: '1',
+          is_active: "1",
         },
       });
       // If template is not found for specific store, fetch from default
@@ -886,26 +826,21 @@ exports.getMailTemplate = async (data) => {
       }
       // If template not found at all, return an error
       if (!htmlTemplate) {
-        throw new Error('Template not found');
+        throw new Error("Template not found");
       }
       html = htmlTemplate.dataValues.value;
       subject = htmlTemplate.dataValues.subject;
       campaign_name = htmlTemplate.dataValues.campaign_name;
     } else {
-      (html = data.html),
-        (subject = data.subject),
-        (campaign_name = 'Test Mail Campaign');
+      (html = data.html), (subject = data.subject), (campaign_name = "Test Mail Campaign");
     }
     const updatedHtmlTemplate = await replaceVariablesInTemplate(html, data);
 
-    if (
-      typeof updatedHtmlTemplate === 'object' &&
-      !updatedHtmlTemplate.success
-    ) {
+    if (typeof updatedHtmlTemplate === "object" && !updatedHtmlTemplate.success) {
       throw new Error(updatedHtmlTemplate.error);
     }
     const updatedSubject = await replaceVariablesInTemplate(subject, data);
-    if (typeof updatedSubject === 'object' && !updatedSubject.success) {
+    if (typeof updatedSubject === "object" && !updatedSubject.success) {
       throw new Error(updatedSubject.error);
     }
     return {
@@ -915,7 +850,7 @@ exports.getMailTemplate = async (data) => {
       success: true,
     };
   } catch (error) {
-    console.log('error in getMailTemplate', error);
+    console.log("error in getMailTemplate", error);
     return { success: false, error: error?.message || error };
   }
 };
@@ -928,13 +863,13 @@ const replaceVariablesInTemplate = async (htmlTemplate, data) => {
 
     for (const variable of variables) {
       const value = await getValueForVariable(variable, data);
-      if (typeof value === 'object' && !value.success) throw new Error(value.error);
+      if (typeof value === "object" && !value.success) throw new Error(value.error);
       updatedTemplate = updatedTemplate.replace(`{{${variable}}}`, value);
     }
 
     return updatedTemplate;
   } catch (error) {
-    console.log('replaceVariablesInTemplate error:', error.message);
+    console.log("replaceVariablesInTemplate error:", error.message);
     return { success: false, error: error?.message || error };
   }
 };
@@ -943,97 +878,88 @@ const getValueForVariable = async (variable, data) => {
   try {
     let { store, rule, deal, customer, order, products, isTestMail } = data;
     switch (variable) {
-      case 'store_name':
-        return store?.username || '';
-      case 'store_domain':
-        return (store?.main_domain ? store?.main_domain : store?.domain) || '';
-      case 'store_currency':
-        return store?.currency || '';
-      case 'store_currency_format':
-        return store?.currency_format || '';
-      case 'reward_point':
-        return rule?.point || '';
-      case 'reward_comment':
-        return rule?.comment || '';
-      case 'reward_name':
-        return rule?.rule_type
-          ? rule?.rule_type.charAt(0).toUpperCase() + rule?.rule_type.slice(1)
-          : '';
-      case 'reward_expire_in_days':
-        return rule?.expiry_days || '';
-      case 'reward_order_amount':
-        return rule?.value || '';
-      case 'reward_order_quantity':
-        return rule?.value || '';
+      case "store_name":
+        return store?.username || "";
+      case "store_domain":
+        return (store?.main_domain ? store?.main_domain : store?.domain) || "";
+      case "store_currency":
+        return store?.currency || "";
+      case "store_currency_format":
+        return store?.currency_format || "";
+      case "reward_point":
+        return rule?.point || "";
+      case "reward_comment":
+        return rule?.comment || "";
+      case "reward_name":
+        return rule?.rule_type ? rule?.rule_type.charAt(0).toUpperCase() + rule?.rule_type.slice(1) : "";
+      case "reward_expire_in_days":
+        return rule?.expiry_days || "";
+      case "reward_order_amount":
+        return rule?.value || "";
+      case "reward_order_quantity":
+        return rule?.value || "";
 
-      case 'discount_coupon_value':
-        return rule?.discount_coupon_value || '';
-      case 'discount_condition':
-        return rule?.discount_condition || '';
-      case 'discount_coupon':
-        return rule?.discount_coupon || '';
-      case 'min_point_to_redeem':
-        return store?.min_reward_to_redeem || '';
-      case 'max_point_to_redeem':
-        return store?.max_reward_to_redeem || '';
-      case 'one_point_eq_to_amount':
-        return store?.reward_redeem_amount || '';
-      case 'min_cart_amount_to_redeem':
-        return store?.min_cart_amount_to_redeem || '';
-      case 'deal_name':
-        return deal?.name || '';
-      case 'deal_discount':
-        return deal?.discount_value || '';
-      case 'deal_discount_type':
-        return deal?.type || '';
-      case 'deal_expiry_date':
-        return deal?.end_date?.split('T')[0] || '';
-      case 'deal_expiry_time':
-        return deal?.end_time || '';
-      case 'deal_start_date':
-        return deal?.start_date?.split('T')[0] || '';
-      case 'deal_start_time':
-        return deal?.start_time || '';
-      case 'customer_email':
-        return customer?.customer_email || '';
-      case 'customer_name':
-        return (
-          `${customer?.first_name || ''} ${customer?.last_name || ''}`.trim() ||
-          'User'
-        );
-      case 'customer_first_name':
-        return customer?.first_name || 'User';
-      case 'order_name':
-        return order?.name || '';
-      case 'order_amount':
-        return order?.price || '';
-      case 'order_discount':
-        return order?.discount || '';
-      case 'products':
+      case "discount_coupon_value":
+        return rule?.discount_coupon_value || "";
+      case "discount_condition":
+        return rule?.discount_condition || "";
+      case "discount_coupon":
+        return rule?.discount_coupon || "";
+      case "min_point_to_redeem":
+        return store?.min_reward_to_redeem || "";
+      case "max_point_to_redeem":
+        return store?.max_reward_to_redeem || "";
+      case "one_point_eq_to_amount":
+        return store?.reward_redeem_amount || "";
+      case "min_cart_amount_to_redeem":
+        return store?.min_cart_amount_to_redeem || "";
+      case "deal_name":
+        return deal?.name || "";
+      case "deal_discount":
+        return deal?.discount_value || "";
+      case "deal_discount_type":
+        return deal?.type || "";
+      case "deal_expiry_date":
+        return deal?.end_date?.split("T")[0] || "";
+      case "deal_expiry_time":
+        return deal?.end_time || "";
+      case "deal_start_date":
+        return deal?.start_date?.split("T")[0] || "";
+      case "deal_start_time":
+        return deal?.start_time || "";
+      case "customer_email":
+        return customer?.customer_email || "";
+      case "customer_name":
+        return `${customer?.first_name || ""} ${customer?.last_name || ""}`.trim() || "User";
+      case "customer_first_name":
+        return customer?.first_name || "User";
+      case "order_name":
+        return order?.name || "";
+      case "order_amount":
+        return order?.price || "";
+      case "order_discount":
+        return order?.discount || "";
+      case "products":
         if (deal && deal?.product_id.length) {
-          let data = await this.getProductsHtmlForDeal(
-            deal.product_id,
-            store,
-            isTestMail
-          );
-          if (typeof data === 'object' && !data.success) {
+          let data = await this.getProductsHtmlForDeal(deal.product_id, store, isTestMail);
+          if (typeof data === "object" && !data.success) {
             throw new Error(data.error);
           }
-          return data ? data : '';
+          return data ? data : "";
         } else if (!deal?.product_id?.length && isTestMail) {
           let data = this.getProductsHtml({ products, store });
-          if (typeof data === 'object' && !data.success) {
+          if (typeof data === "object" && !data.success) {
             throw new Error(data.error);
           }
-          return data ? data : '';
+          return data ? data : "";
         } else {
-          return products ? products : '';
+          return products ? products : "";
         }
       default:
-        return '';
+        return "";
     }
   } catch (error) {
-    console.log('error in getValueForVariableww', error.message);
+    console.log("error in getValueForVariableww", error.message);
     return { success: false, error: error?.message || error };
   }
 };
@@ -1042,33 +968,33 @@ exports.sendEventToKlaviyo = async (store_id, eventdata) => {
   try {
     // console.log("eventdata", eventdata);
     integrationData = await db.Integration.findOne({
-      where: { store_id, app: 'klaviyo' },
+      where: { store_id, app: "klaviyo" },
     });
     let decryptData = this.decrypt(integrationData.credential);
     api_key = JSON.parse(decryptData);
     const options = {
-      method: 'POST',
+      method: "POST",
       headers: {
-        accept: 'application/json',
-        revision: '2024-05-15',
-        'content-type': 'application/json',
+        accept: "application/json",
+        revision: "2024-05-15",
+        "content-type": "application/json",
         Authorization: `Klaviyo-API-Key ${api_key}`,
       },
       body: {
         data: {
-          type: 'event',
+          type: "event",
           attributes: {
             properties: eventdata.properties,
             metric: {
               data: {
-                type: 'metric',
+                type: "metric",
                 // attributes: { name: "Reward Created" },
                 attributes: { name: eventdata.name },
               },
             },
             profile: {
               data: {
-                type: 'profile',
+                type: "profile",
                 attributes: {
                   // email: "dsaurabh@techsurvi.com",
                   email: eventdata.email,
@@ -1085,93 +1011,87 @@ exports.sendEventToKlaviyo = async (store_id, eventdata) => {
       headers: options.headers,
     });
     if (data.status == 202) {
-      return { status: true, message: 'SUCCESS', mailClient: 'Klaviyo' };
+      return { status: true, message: "SUCCESS", mailClient: "Klaviyo" };
     } else {
-      return { status: false, error: 'ERROR', mailClient: 'Klaviyo' };
+      return { status: false, error: "ERROR", mailClient: "Klaviyo" };
     }
   } catch (error) {
-    console.log('error inside send klaviyoevent function', error);
-    return { status: false, error: error.message, mailClient: 'klaviyo' };
+    console.log("error inside send klaviyoevent function", error);
+    return { status: false, error: error.message, mailClient: "klaviyo" };
   }
 };
 
 exports.sendAllEventToKlaviyo = async (api_key) => {
   try {
-    console.log('console in send all event to klaviyoo22');
-    console.log('api_key', api_key);
+    console.log("console in send all event to klaviyoo22");
+    console.log("api_key", api_key);
     let eventsArr = [
       {
-        name: 'Retenzy-Signup Reward',
+        name: "Retenzy-Signup Reward",
         properties: {
           rewardName: `Signup Reward`,
-          comment: 'Your Comment at the time of reward rule creation',
-          expiry_days:
-            'if you set reward at never expire then it never expire otherwise it will expired at given days ',
-          point: 'reward point',
-          first_name: 'customer first name',
-          last_name: 'customer last name',
+          comment: "Your Comment at the time of reward rule creation",
+          expiry_days: "if you set reward at never expire then it never expire otherwise it will expired at given days ",
+          point: "reward point",
+          first_name: "customer first name",
+          last_name: "customer last name",
         },
       },
       {
-        name: 'Retenzy-Amount Reward',
+        name: "Retenzy-Amount Reward",
         properties: {
           rewardName: `Amount Reward`,
-          comment: 'Your Comment at the time of reward rule creation',
-          expiry_days:
-            'if you set reward at never expire then it never expire otherwise it will expired at given days ',
-          point: 'reward point',
-          first_name: 'customer first name',
-          last_name: 'customer last name',
+          comment: "Your Comment at the time of reward rule creation",
+          expiry_days: "if you set reward at never expire then it never expire otherwise it will expired at given days ",
+          point: "reward point",
+          first_name: "customer first name",
+          last_name: "customer last name",
         },
       },
       {
-        name: 'Retenzy-Quantity Reward',
+        name: "Retenzy-Quantity Reward",
         properties: {
           rewardName: `Quantity Reward`,
-          comment: 'Your Comment at the time of reward rule creation',
-          expiry_days:
-            'if you set reward at never expire then it never expire otherwise it will expired at given days ',
-          point: 'reward point',
+          comment: "Your Comment at the time of reward rule creation",
+          expiry_days: "if you set reward at never expire then it never expire otherwise it will expired at given days ",
+          point: "reward point",
 
-          first_name: 'customer first name',
-          last_name: 'customer last name',
+          first_name: "customer first name",
+          last_name: "customer last name",
         },
       },
       {
-        name: 'Retenzy-Social Media Reward',
+        name: "Retenzy-Social Media Reward",
         properties: {
           rewardName: `(Social media PlatForm name) Reward`,
-          comment: 'Your Comment at the time of reward rule creation',
-          expiry_days:
-            'if you set reward at never expire then it never expire otherwise it will expired at given days ',
-          point: 'reward point',
+          comment: "Your Comment at the time of reward rule creation",
+          expiry_days: "if you set reward at never expire then it never expire otherwise it will expired at given days ",
+          point: "reward point",
           platform: `Social media PlatForm name`,
-          first_name: 'customer first name',
-          last_name: 'customer last name',
+          first_name: "customer first name",
+          last_name: "customer last name",
         },
       },
       {
-        name: 'Retenzy-Review Reward',
+        name: "Retenzy-Review Reward",
         properties: {
           rewardName: `Review Reward`,
-          comment: 'Your Comment at the time of reward rule creation',
-          expiry_days:
-            'if you set reward at never expire then it never expire otherwise it will expired at given days ',
-          point: 'reward point',
-          first_name: 'customer first name',
-          last_name: 'customer last name',
+          comment: "Your Comment at the time of reward rule creation",
+          expiry_days: "if you set reward at never expire then it never expire otherwise it will expired at given days ",
+          point: "reward point",
+          first_name: "customer first name",
+          last_name: "customer last name",
         },
       },
       {
-        name: 'Retenzy-Anniversary Reward',
+        name: "Retenzy-Anniversary Reward",
         properties: {
           rewardName: `Anniversary Reward`,
-          comment: 'Your Comment at the time of reward rule creation',
-          expiry_days:
-            'if you set reward at never expire then it never expire otherwise it will expired at given days ',
-          point: 'reward point',
-          first_name: 'customer first name',
-          last_name: 'customer last name',
+          comment: "Your Comment at the time of reward rule creation",
+          expiry_days: "if you set reward at never expire then it never expire otherwise it will expired at given days ",
+          point: "reward point",
+          first_name: "customer first name",
+          last_name: "customer last name",
         },
       },
       // {
@@ -1195,19 +1115,18 @@ exports.sendAllEventToKlaviyo = async (api_key) => {
       //   },
       // },
       {
-        name: 'Retenzy-Custom Reward',
+        name: "Retenzy-Custom Reward",
         properties: {
           rewardName: `Custom Reward`,
-          comment: 'Comment at the time of custom reward given to customer',
-          expiry_days:
-            'if you set reward at never expire then it never expire otherwise it will expired at given days ',
-          point: 'reward point',
-          first_name: 'customer first name',
-          last_name: 'customer last name',
+          comment: "Comment at the time of custom reward given to customer",
+          expiry_days: "if you set reward at never expire then it never expire otherwise it will expired at given days ",
+          point: "reward point",
+          first_name: "customer first name",
+          last_name: "customer last name",
         },
       },
       {
-        name: 'Retenzy-review_reminder',
+        name: "Retenzy-review_reminder",
         properties: {
           products: `you get product data in arrays of object like [
             {
@@ -1223,13 +1142,13 @@ exports.sendAllEventToKlaviyo = async (api_key) => {
             reviewUrl:link to write product review
           },
         ]  And you can access like products[0].title for 1st product name`,
-          order_name: 'order name',
-          first_name: 'customer first name',
-          last_name: 'customer last name',
+          order_name: "order name",
+          first_name: "customer first name",
+          last_name: "customer last name",
         },
       },
       {
-        name: 'Retenzy-review_request',
+        name: "Retenzy-review_request",
         properties: {
           products: `you get product data in arrays of object like [
             {
@@ -1245,52 +1164,52 @@ exports.sendAllEventToKlaviyo = async (api_key) => {
             reviewUrl:link to write product review
           },
         ]  And you can access like products[0].title for 1st product name`,
-          order_name: 'order name',
-          first_name: 'customer first name',
-          last_name: 'customer last name',
+          order_name: "order name",
+          first_name: "customer first name",
+          last_name: "customer last name",
         },
       },
       {
-        name: 'Retenzy-Coupon genaration',
+        name: "Retenzy-Coupon genaration",
         properties: {
-          name: '',
-          point: 'reward point use to genrate coupon',
-          discount_coupon: 'coupon code',
-          discount_value: 'value of discount',
-          first_name: 'customer first name',
-          last_name: 'customer last name',
+          name: "",
+          point: "reward point use to genrate coupon",
+          discount_coupon: "coupon code",
+          discount_value: "value of discount",
+          first_name: "customer first name",
+          last_name: "customer last name",
         },
       },
     ];
 
     for (eventdata of eventsArr) {
       const options = {
-        method: 'POST',
+        method: "POST",
         headers: {
-          accept: 'application/json',
-          revision: '2024-05-15',
-          'content-type': 'application/json',
+          accept: "application/json",
+          revision: "2024-05-15",
+          "content-type": "application/json",
           Authorization: `Klaviyo-API-Key ${api_key}`,
         },
         body: {
           data: {
-            type: 'event',
+            type: "event",
             attributes: {
               properties: eventdata.properties,
               metric: {
                 data: {
-                  type: 'metric',
+                  type: "metric",
                   // attributes: { name: "Reward Created" },
                   attributes: { name: eventdata.name },
                 },
               },
               profile: {
                 data: {
-                  type: 'profile',
+                  type: "profile",
                   attributes: {
                     // email: "dsaurabh@techsurvi.com",
                     // email: eventdata.email,
-                    email: 'user@retenzy.app',
+                    email: "user@retenzy.app",
                   },
                 },
               },
@@ -1302,12 +1221,12 @@ exports.sendAllEventToKlaviyo = async (api_key) => {
       let data = await axios.post(url, options.body, {
         headers: options.headers,
       });
-      console.log('successfully send all event to klaviyo in forr');
+      console.log("successfully send all event to klaviyo in forr");
     }
-    console.log('successfully send all event to klaviyo');
-    return { status: true, message: 'successfully send all event to klaviyo' };
+    console.log("successfully send all event to klaviyo");
+    return { status: true, message: "successfully send all event to klaviyo" };
   } catch (error) {
-    console.log('error=>>>>>>', error.response.data);
+    console.log("error=>>>>>>", error.response.data);
     return { status: false, message: error.message };
   }
 };
@@ -1319,16 +1238,9 @@ const findListIdByEmailMailchimp = async (customerEmail) => {
     const lists = listsResponse.lists;
     for (const list of lists) {
       try {
-        const memberResponse = await mailchimp.lists.getListMember(
-          list.id,
-          customerEmail
-        );
-        if (
-          memberResponse.status === 'subscribed' ||
-          memberResponse.status === 'pending' ||
-          memberResponse.status === 'unsubscribed'
-        ) {
-          console.log('list.id', list.id);
+        const memberResponse = await mailchimp.lists.getListMember(list.id, customerEmail);
+        if (memberResponse.status === "subscribed" || memberResponse.status === "pending" || memberResponse.status === "unsubscribed") {
+          console.log("list.id", list.id);
           return list.id;
         }
       } catch (error) {
@@ -1338,10 +1250,10 @@ const findListIdByEmailMailchimp = async (customerEmail) => {
       }
     }
     await addMemberToListMailchimp(lists[0].id, customerEmail);
-    console.log('customer added in list id', lists[0].id);
+    console.log("customer added in list id", lists[0].id);
     return lists[0].id;
   } catch (error) {
-    console.error('Error retrieving lists:', error);
+    console.error("Error retrieving lists:", error);
     return null;
   }
 };
@@ -1349,7 +1261,7 @@ async function addMemberToListMailchimp(listId, email) {
   try {
     const response = await mailchimp.lists.addListMember(listId, {
       email_address: email,
-      status: 'subscribed',
+      status: "subscribed",
     });
     return listId;
   } catch (error) {
@@ -1360,97 +1272,89 @@ async function addMemberToListMailchimp(listId, email) {
 exports.sendEventToMailchimp = async (store_id, eventdata) => {
   try {
     integrationData = await db.Integration.findOne({
-      where: { store_id, app: 'mailchimp' },
+      where: { store_id, app: "mailchimp" },
     });
     let decryptData = this.decrypt(integrationData.credential);
     let api_key = JSON.parse(decryptData);
 
     mailchimp.setConfig({
       apiKey: api_key,
-      server: api_key.split('-')[1],
+      server: api_key.split("-")[1],
     });
     const listId = await findListIdByEmailMailchimp(eventdata.email);
     if (!listId) {
-      console.error('Customer not found in any list');
+      console.error("Customer not found in any list");
       return;
     }
-    const response = await mailchimp.lists.createListMemberEvent(
-      listId,
-      eventdata.email,
-      {
-        name: eventdata.name.split(' ').join(''),
-        properties: eventdata.properties,
-      }
-    );
-    console.log('Custom event sent successfully:', response);
-    return { status: true, message: 'SUCCESS', email_client: 'Mailchimp' };
+    const response = await mailchimp.lists.createListMemberEvent(listId, eventdata.email, {
+      name: eventdata.name.split(" ").join(""),
+      properties: eventdata.properties,
+    });
+    console.log("Custom event sent successfully:", response);
+    return { status: true, message: "SUCCESS", email_client: "Mailchimp" };
   } catch (error) {
-    console.error('Failed to send custom event:', error.response.body);
+    console.error("Failed to send custom event:", error.response.body);
     return { status: false, error: error.message };
   }
 };
 exports.sendAllEventToMailchimp = async (api_key) => {
   try {
-    console.log('console in send all event to klaviyoo22');
-    console.log('api_key', api_key);
+    console.log("console in send all event to klaviyoo22");
+    console.log("api_key", api_key);
     mailchimp.setConfig({
       apiKey: api_key,
-      server: api_key.split('-')[1],
+      server: api_key.split("-")[1],
     });
-    const listId = await findListIdByEmailMailchimp('user@retenzy.app');
+    const listId = await findListIdByEmailMailchimp("user@retenzy.app");
     if (!listId) {
-      console.error('Customer not found in any list');
+      console.error("Customer not found in any list");
       return;
     }
     let eventsArr = [
       {
-        name: 'Retenzy-Signup Reward',
+        name: "Retenzy-Signup Reward",
         properties: {
           rewardName: `Signup Reward`,
-          comment: 'Your Comment at the time of reward rule creation',
-          expiry_days:
-            'if you set reward at never expire then it never expire otherwise it will expired at given days ',
-          point: 'reward point',
-          first_name: 'customer first name',
-          last_name: 'customer last name',
+          comment: "Your Comment at the time of reward rule creation",
+          expiry_days: "if you set reward at never expire then it never expire otherwise it will expired at given days ",
+          point: "reward point",
+          first_name: "customer first name",
+          last_name: "customer last name",
         },
       },
       {
-        name: 'Retenzy-Amount Reward',
+        name: "Retenzy-Amount Reward",
         properties: {
           rewardName: `Amount Reward`,
-          comment: 'Your Comment at the time of reward rule creation',
-          expiry_days:
-            'if you set reward at never expire then it never expire otherwise it will expired at given days ',
-          point: 'reward point',
-          first_name: 'customer first name',
-          last_name: 'customer last name',
+          comment: "Your Comment at the time of reward rule creation",
+          expiry_days: "if you set reward at never expire then it never expire otherwise it will expired at given days ",
+          point: "reward point",
+          first_name: "customer first name",
+          last_name: "customer last name",
         },
       },
       {
-        name: 'Retenzy-Quantity Reward',
+        name: "Retenzy-Quantity Reward",
         properties: {
           rewardName: `Quantity Reward`,
-          comment: 'Your Comment at the time of reward rule creation',
-          expiry_days:
-            'if you set reward at never expire then it never expire otherwise it will expired at given days ',
-          point: 'reward point',
+          comment: "Your Comment at the time of reward rule creation",
+          expiry_days: "if you set reward at never expire then it never expire otherwise it will expired at given days ",
+          point: "reward point",
 
-          first_name: 'customer first name',
-          last_name: 'customer last name',
+          first_name: "customer first name",
+          last_name: "customer last name",
         },
       },
       {
-        name: 'Retenzy-Social Media Reward',
+        name: "Retenzy-Social Media Reward",
         properties: {
           rewardName: `(Social media PlatForm name) Reward`,
-          comment: 'Your Comment at the time of reward rule creation',
-          expiry_days:
-            'if you set reward at never expire then it never expire otherwise it will expired at given days ',
-          point: 'reward point',
+          comment: "Your Comment at the time of reward rule creation",
+          expiry_days: "if you set reward at never expire then it never expire otherwise it will expired at given days ",
+          point: "reward point",
           platform: `Social media PlatForm name`,
-          first_name: 'customer first name',
-          last_name: 'customer last name',
+          first_name: "customer first name",
+          last_name: "customer last name",
         },
       },
       // {
@@ -1474,43 +1378,40 @@ exports.sendAllEventToMailchimp = async (api_key) => {
       //   },
       // },
       {
-        name: 'Retenzy-Review Reward',
+        name: "Retenzy-Review Reward",
         properties: {
           rewardName: `Review Reward`,
-          comment: 'Your Comment at the time of reward rule creation',
-          expiry_days:
-            'if you set reward at never expire then it never expire otherwise it will expired at given days ',
-          point: 'reward point',
-          first_name: 'customer first name',
-          last_name: 'customer last name',
+          comment: "Your Comment at the time of reward rule creation",
+          expiry_days: "if you set reward at never expire then it never expire otherwise it will expired at given days ",
+          point: "reward point",
+          first_name: "customer first name",
+          last_name: "customer last name",
         },
       },
       {
-        name: 'Retenzy-Anniversary Reward',
+        name: "Retenzy-Anniversary Reward",
         properties: {
           rewardName: `Anniversary Reward`,
-          comment: 'Your Comment at the time of reward rule creation',
-          expiry_days:
-            'if you set reward at never expire then it never expire otherwise it will expired at given days ',
-          point: 'reward point',
-          first_name: 'customer first name',
-          last_name: 'customer last name',
+          comment: "Your Comment at the time of reward rule creation",
+          expiry_days: "if you set reward at never expire then it never expire otherwise it will expired at given days ",
+          point: "reward point",
+          first_name: "customer first name",
+          last_name: "customer last name",
         },
       },
       {
-        name: 'Retenzy-Custom Reward',
+        name: "Retenzy-Custom Reward",
         properties: {
           rewardName: `Custom Reward`,
-          comment: 'Comment at the time of custom reward given to customer',
-          expiry_days:
-            'if you set reward at never expire then it never expire otherwise it will expired at given days ',
-          point: 'reward point',
-          first_name: 'customer first name',
-          last_name: 'customer last name',
+          comment: "Comment at the time of custom reward given to customer",
+          expiry_days: "if you set reward at never expire then it never expire otherwise it will expired at given days ",
+          point: "reward point",
+          first_name: "customer first name",
+          last_name: "customer last name",
         },
       },
       {
-        name: 'Retenzy-review_reminder',
+        name: "Retenzy-review_reminder",
         properties: {
           products: `you get product data in arrays of object like [
             {
@@ -1526,13 +1427,13 @@ exports.sendAllEventToMailchimp = async (api_key) => {
             reviewUrl:link to write product review
           },
         ]  And you can access like products[0].title for 1st product name`,
-          order_name: 'order name',
-          first_name: 'customer first name',
-          last_name: 'customer last name',
+          order_name: "order name",
+          first_name: "customer first name",
+          last_name: "customer last name",
         },
       },
       {
-        name: 'Retenzy-review_request',
+        name: "Retenzy-review_request",
         properties: {
           products: `you get product data in arrays of object like [
             {
@@ -1548,83 +1449,72 @@ exports.sendAllEventToMailchimp = async (api_key) => {
             reviewUrl:link of product review
           },
         ]  And you can access like products[0].title for 1st product name`,
-          order_name: 'order name',
-          first_name: 'customer first name',
-          last_name: 'customer last name',
+          order_name: "order name",
+          first_name: "customer first name",
+          last_name: "customer last name",
         },
       },
       {
-        name: 'Retenzy-Coupon genaration',
+        name: "Retenzy-Coupon genaration",
         properties: {
-          name: '',
-          point: 'reward point use to genrate coupon',
-          discount_coupon: 'coupon code',
-          discount_value: 'value of discount',
-          first_name: 'customer first name',
-          last_name: 'customer last name',
+          name: "",
+          point: "reward point use to genrate coupon",
+          discount_coupon: "coupon code",
+          discount_value: "value of discount",
+          first_name: "customer first name",
+          last_name: "customer last name",
         },
       },
     ];
 
     for (eventdata of eventsArr) {
-      const response = await mailchimp.lists.createListMemberEvent(
-        listId,
-        'user@retenzy.app',
-        {
-          name: eventdata.name.split(' ').join(''),
-          properties: eventdata.properties,
-        }
-      );
-      console.log('event sent successfully:', response);
+      const response = await mailchimp.lists.createListMemberEvent(listId, "user@retenzy.app", {
+        name: eventdata.name.split(" ").join(""),
+        properties: eventdata.properties,
+      });
+      console.log("event sent successfully:", response);
     }
-    console.log('successfully send all event to mailchimp');
+    console.log("successfully send all event to mailchimp");
     return {
       status: true,
-      message: 'successfully send all event to mailchimp',
+      message: "successfully send all event to mailchimp",
     };
   } catch (error) {
-    console.log('error=>>>>>>', error.response.data);
+    console.log("error=>>>>>>", error.response.data);
     return { status: false, message: error.message };
   }
 };
 exports.sendEventToOmnisend = async (store_id, eventdata) => {
   try {
     integrationData = await db.Integration.findOne({
-      where: { store_id, app: 'omnisend' },
+      where: { store_id, app: "omnisend" },
     });
     let decryptData = this.decrypt(integrationData.credential);
     let api_key = JSON.parse(decryptData);
 
     const options = {
-      method: 'POST',
-      url: 'https://api.omnisend.com/v5/events',
+      method: "POST",
+      url: "https://api.omnisend.com/v5/events",
       headers: {
-        accept: 'application/json',
-        'content-type': 'application/json',
-        'X-API-KEY': api_key,
+        accept: "application/json",
+        "content-type": "application/json",
+        "X-API-KEY": api_key,
       },
       data: {
         contact: { email: eventdata.email },
         properties: eventdata.properties,
         eventName: eventdata.name,
-        origin: 'api',
+        origin: "api",
       },
     };
 
-    eventdata?.properties?.first_name
-      ? (options.data.contact.firstName = eventdata.properties.first_name)
-      : null;
-    eventdata?.properties?.last_name
-      ? (options.data.contact.lastName = eventdata.properties.last_name)
-      : null;
+    eventdata?.properties?.first_name ? (options.data.contact.firstName = eventdata.properties.first_name) : null;
+    eventdata?.properties?.last_name ? (options.data.contact.lastName = eventdata.properties.last_name) : null;
     let data = await axios.request(options);
-    console.log('Custom event sent successfully:', data);
-    return { status: true, message: 'SUCCESS', email_client: 'Omnisend' };
+    console.log("Custom event sent successfully:", data);
+    return { status: true, message: "SUCCESS", email_client: "Omnisend" };
   } catch (error) {
-    console.log(
-      'Failed to send custom event:',
-      error?.response ? error.response?.data : error.message
-    );
+    console.log("Failed to send custom event:", error?.response ? error.response?.data : error.message);
     return { status: false, error: error.message };
   }
 };
@@ -1632,53 +1522,49 @@ exports.sendAllEventToOmnisend = async (api_key) => {
   try {
     let eventsArr = [
       {
-        name: 'Retenzy-Signup Reward',
+        name: "Retenzy-Signup Reward",
         properties: {
           rewardName: `Signup Reward`,
-          comment: 'Your Comment at the time of reward rule creation',
-          expiry_days:
-            'if you set reward at never expire then it never expire otherwise it will expired at given days ',
-          point: 'reward point',
-          first_name: 'customer first name',
-          last_name: 'customer last name',
+          comment: "Your Comment at the time of reward rule creation",
+          expiry_days: "if you set reward at never expire then it never expire otherwise it will expired at given days ",
+          point: "reward point",
+          first_name: "customer first name",
+          last_name: "customer last name",
         },
       },
       {
-        name: 'Retenzy-Amount Reward',
+        name: "Retenzy-Amount Reward",
         properties: {
           rewardName: `Amount Reward`,
-          comment: 'Your Comment at the time of reward rule creation',
-          expiry_days:
-            'if you set reward at never expire then it never expire otherwise it will expired at given days ',
-          point: 'reward point',
-          first_name: 'customer first name',
-          last_name: 'customer last name',
+          comment: "Your Comment at the time of reward rule creation",
+          expiry_days: "if you set reward at never expire then it never expire otherwise it will expired at given days ",
+          point: "reward point",
+          first_name: "customer first name",
+          last_name: "customer last name",
         },
       },
       {
-        name: 'Retenzy-Quantity Reward',
+        name: "Retenzy-Quantity Reward",
         properties: {
           rewardName: `Quantity Reward`,
-          comment: 'Your Comment at the time of reward rule creation',
-          expiry_days:
-            'if you set reward at never expire then it never expire otherwise it will expired at given days ',
-          point: 'reward point',
+          comment: "Your Comment at the time of reward rule creation",
+          expiry_days: "if you set reward at never expire then it never expire otherwise it will expired at given days ",
+          point: "reward point",
 
-          first_name: 'customer first name',
-          last_name: 'customer last name',
+          first_name: "customer first name",
+          last_name: "customer last name",
         },
       },
       {
-        name: 'Retenzy-Social Media Reward',
+        name: "Retenzy-Social Media Reward",
         properties: {
           rewardName: `(Social media PlatForm name) Reward`,
-          comment: 'Your Comment at the time of reward rule creation',
-          expiry_days:
-            'if you set reward at never expire then it never expire otherwise it will expired at given days ',
-          point: 'reward point',
+          comment: "Your Comment at the time of reward rule creation",
+          expiry_days: "if you set reward at never expire then it never expire otherwise it will expired at given days ",
+          point: "reward point",
           platform: `Social media PlatForm name`,
-          first_name: 'customer first name',
-          last_name: 'customer last name',
+          first_name: "customer first name",
+          last_name: "customer last name",
         },
       },
       ///////////////////////////////////////////////////////////
@@ -1704,43 +1590,40 @@ exports.sendAllEventToOmnisend = async (api_key) => {
       // },
       ////////////////////////////////
       {
-        name: 'Retenzy-Review Reward',
+        name: "Retenzy-Review Reward",
         properties: {
           rewardName: `Review Reward`,
-          comment: 'Your Comment at the time of reward rule creation',
-          expiry_days:
-            'if you set reward at never expire then it never expire otherwise it will expired at given days ',
-          point: 'reward point',
-          first_name: 'customer first name',
-          last_name: 'customer last name',
+          comment: "Your Comment at the time of reward rule creation",
+          expiry_days: "if you set reward at never expire then it never expire otherwise it will expired at given days ",
+          point: "reward point",
+          first_name: "customer first name",
+          last_name: "customer last name",
         },
       },
       {
-        name: 'Retenzy-Anniversary Reward',
+        name: "Retenzy-Anniversary Reward",
         properties: {
           rewardName: `Anniversary Reward`,
-          comment: 'Your Comment at the time of reward rule creation',
-          expiry_days:
-            'if you set reward at never expire then it never expire otherwise it will expired at given days ',
-          point: 'reward point',
-          first_name: 'customer first name',
-          last_name: 'customer last name',
+          comment: "Your Comment at the time of reward rule creation",
+          expiry_days: "if you set reward at never expire then it never expire otherwise it will expired at given days ",
+          point: "reward point",
+          first_name: "customer first name",
+          last_name: "customer last name",
         },
       },
       {
-        name: 'Retenzy-Custom Reward',
+        name: "Retenzy-Custom Reward",
         properties: {
           rewardName: `Custom Reward`,
-          comment: 'Comment at the time of custom reward given to customer',
-          expiry_days:
-            'if you set reward at never expire then it never expire otherwise it will expired at given days ',
-          point: 'reward point',
-          first_name: 'customer first name',
-          last_name: 'customer last name',
+          comment: "Comment at the time of custom reward given to customer",
+          expiry_days: "if you set reward at never expire then it never expire otherwise it will expired at given days ",
+          point: "reward point",
+          first_name: "customer first name",
+          last_name: "customer last name",
         },
       },
       {
-        name: 'Retenzy-review_reminder',
+        name: "Retenzy-review_reminder",
         properties: {
           products: `you get product data in arrays of object like [
             {
@@ -1756,13 +1639,13 @@ exports.sendAllEventToOmnisend = async (api_key) => {
             reviewUrl:link to write product review
           },
         ]  And you can access like products[0].title for 1st product name`,
-          order_name: 'order name',
-          first_name: 'customer first name',
-          last_name: 'customer last name',
+          order_name: "order name",
+          first_name: "customer first name",
+          last_name: "customer last name",
         },
       },
       {
-        name: 'Retenzy-review_request',
+        name: "Retenzy-review_request",
         properties: {
           products: `you get product data in arrays of object like [
             {
@@ -1778,32 +1661,32 @@ exports.sendAllEventToOmnisend = async (api_key) => {
             reviewUrl:link to write product review
           },
         ]  And you can access like products[0].title for 1st product name`,
-          order_name: 'order name',
-          first_name: 'customer first name',
-          last_name: 'customer last name',
+          order_name: "order name",
+          first_name: "customer first name",
+          last_name: "customer last name",
         },
       },
       {
-        name: 'Retenzy-Coupon genaration',
+        name: "Retenzy-Coupon genaration",
         properties: {
-          name: '',
-          point: 'reward point use to genrate coupon',
-          discount_coupon: 'coupon code',
-          discount_value: 'value of discount',
-          first_name: 'customer first name',
-          last_name: 'customer last name',
+          name: "",
+          point: "reward point use to genrate coupon",
+          discount_coupon: "coupon code",
+          discount_value: "value of discount",
+          first_name: "customer first name",
+          last_name: "customer last name",
         },
       },
     ];
 
     for (eventdata of eventsArr) {
       const options = {
-        method: 'POST',
-        url: 'https://api.omnisend.com/v5/events',
+        method: "POST",
+        url: "https://api.omnisend.com/v5/events",
         headers: {
-          accept: 'application/json',
-          'content-type': 'application/json',
-          'X-API-KEY': api_key,
+          accept: "application/json",
+          "content-type": "application/json",
+          "X-API-KEY": api_key,
         },
         // data: {
         //   fields: eventdata.properties,
@@ -1812,38 +1695,35 @@ exports.sendAllEventToOmnisend = async (api_key) => {
         //   email: "user@retenzy.com",
         // },
         data: {
-          contact: { email: 'user@retenzy.app' },
+          contact: { email: "user@retenzy.app" },
           properties: eventdata.properties,
           eventName: eventdata.name,
-          origin: 'api',
+          origin: "api",
         },
       };
       let data = await axios.request(options);
-      console.log('data of evbent sending to omnisend', data);
+      console.log("data of evbent sending to omnisend", data);
     }
-    console.log('successfully send all event to omnisend');
-    return { status: true, message: 'successfully send all event to omnisend' };
+    console.log("successfully send all event to omnisend");
+    return { status: true, message: "successfully send all event to omnisend" };
   } catch (error) {
-    console.log(
-      'error in sendAllEventToOmnisend',
-      error.response ? error.response.data : error.message
-    );
+    console.log("error in sendAllEventToOmnisend", error.response ? error.response.data : error.message);
     return { status: false, message: error.message };
   }
 };
 
 exports.rewardOnReview = async (review, storeData) => {
   try {
-    console.log('inside reward on review', review);
-    if (review.is_reward_recieved == '1') return false;
+    console.log("inside reward on review", review);
+    if (review.is_reward_recieved == "1") return false;
     const creditRule = await db.CreditRules.findOne({
-      where: { store_id: storeData.id, rule_type: 'review' },
+      where: { store_id: storeData.id, rule_type: "review" },
     });
-    if (!creditRule || !creditRule.is_active == '1') return;
+    if (!creditRule || !creditRule.is_active == "1") return;
     let rewardData = JSON.parse(creditRule.value);
-    if (rewardData.onlyVerified && review.is_verified != '1') return;
+    if (rewardData.onlyVerified && review.is_verified != "1") return;
     if (!rewardData.samePointForAll) {
-      let urls = review.review_images ? review.review_images.split(',') : [];
+      let urls = review.review_images ? review.review_images.split(",") : [];
       let hasVideo = urls.some((url) => url.match(/\.(mp4|mov|avi)$/i));
       let hasImage = urls.some((url) => url.match(/\.(png|jpg|jpeg)$/i));
       if (hasImage) {
@@ -1863,9 +1743,7 @@ exports.rewardOnReview = async (review, storeData) => {
     let expiryDate = null;
     if (creditRule.expiry_days > 0) {
       let date = new Date();
-      expiryDate = date.setDate(
-        date.getDate() + parseInt(creditRule.expiry_days)
-      );
+      expiryDate = date.setDate(date.getDate() + parseInt(creditRule.expiry_days));
     }
 
     let creditLogObj = {
@@ -1874,9 +1752,9 @@ exports.rewardOnReview = async (review, storeData) => {
       customer_email: customerData.customer_email,
       credit: creditRule.point,
       available: creditRule.point,
-      action_type: 'credit',
+      action_type: "credit",
       comment: creditRule.comment,
-      is_expired: '0',
+      is_expired: "0",
       expiry_date: expiryDate,
     };
     let createCreditLogs = await db.CreditLogs.create(creditLogObj);
@@ -1886,60 +1764,52 @@ exports.rewardOnReview = async (review, storeData) => {
       id: createCreditLogs.id,
       rule: creditRule,
       // type: `${creditRule.rule_type}_reward_redumption`,
-      type: 'review_reward_earned',
+      type: "review_reward_earned",
       customArgs: {
-        email_type: 'review_reward_earned',
-        campaign_name: 'reward_campaign',
+        email_type: "review_reward_earned",
+        campaign_name: "reward_campaign",
       },
       category: [storeData?.username],
     };
     await db.Reviews.update(
-      { is_reward_recieved: '1' },
+      { is_reward_recieved: "1" },
       {
         where: { id: review.id },
       }
     );
     // Email count
     let ismailReached = await this.isMailLimitReached(storeData);
-    if (parseInt(storeData.email_enable) && !ismailReached) {
+    if (parseInt(storeData.email_enable)) {
       let response;
-      if (
-        storeData.email_notification == 'retenzy' ||
-        storeData.email_notification == 'sendgrid'
-      ) {
+      if (storeData.email_notification == "retenzy" || storeData.email_notification == "sendgrid") {
         await this.sendCustomerEmail(mailObject);
       }
       let eventData = {
-        name: 'Retenzy-Review Reward',
+        name: "Retenzy-Review Reward",
         email: customerData.customer_email,
         properties: {
-          rewardName: `${creditRule.rule_type
-            .trim()[0]
-            .toUpperCase()}${creditRule.rule_type.trim().slice(1)} Reward`,
+          rewardName: `${creditRule.rule_type.trim()[0].toUpperCase()}${creditRule.rule_type.trim().slice(1)} Reward`,
           comment: creditRule.comment,
-          expiry_days:
-            creditRule.expiry_days == 0
-              ? 'never expire'
-              : JSON.stringify(creditRule.expiry_days),
+          expiry_days: creditRule.expiry_days == 0 ? "never expire" : JSON.stringify(creditRule.expiry_days),
           point: `${creditRule.point}`,
           first_name: customerData.first_name,
           last_name: customerData.last_name,
         },
       };
-      if (storeData.email_notification == 'klaviyo') {
+      if (storeData.email_notification == "klaviyo") {
         response = await this.sendEventToKlaviyo(storeData.id, eventData);
       }
-      if (storeData.email_notification == 'mailchimp') {
+      if (storeData.email_notification == "mailchimp") {
         response = await this.sendEventToMailchimp(storeData.id, eventData);
       }
-      if (storeData.email_notification == 'omnisend') {
+      if (storeData.email_notification == "omnisend") {
         response = await this.sendEventToOmnisend(storeData.id, eventData);
       }
       if (response?.status == true) {
         let emailLogsObj = {
           store_id: mailObject.store.id,
-          email_type: 'Reward',
-          sent_type: 'auto',
+          email_type: "Reward",
+          sent_type: "auto",
           email_sent_date: new Date(),
           message: `Credit recieved - auto | Customer: ${mailObject.customer.customer_email} | Recieved ${mailObject.rule.point} for ${mailObject.type}`,
           email_message_id: response?.message_id,
@@ -1950,7 +1820,7 @@ exports.rewardOnReview = async (review, storeData) => {
       }
     }
   } catch (error) {
-    console.log('error in rewardOnReview', error);
+    console.log("error in rewardOnReview", error);
     throw error;
   }
 };
@@ -1959,14 +1829,11 @@ exports.updateEmailWebhookData = async (data) => {
     let emailLog = await db.EmailLogs.findOne({
       where: { email_message_id: data.email_message_id },
     });
-    if (emailLog && emailLog?.mail_status != 'click') {
-      await db.EmailLogs.update(
-        { mail_status: data.mail_status },
-        { where: { email_message_id: data.email_message_id } }
-      );
+    if (emailLog && emailLog?.mail_status != "click") {
+      await db.EmailLogs.update({ mail_status: data.mail_status }, { where: { email_message_id: data.email_message_id } });
     }
   } catch (error) {
-    console.log('error in updateEmailWebhookData', error);
+    console.log("error in updateEmailWebhookData", error);
     throw error;
   }
 };
@@ -1980,19 +1847,16 @@ exports.isMailLimitReached = async (store) => {
       where: { id: store.pricing_plan_id },
     });
     if (!pricingPlanData) {
-      throw new Error('Pricing Plan Data not found');
+      throw new Error("Pricing Plan Data not found");
     }
 
     let startDate, endDate;
 
     if (applicationCharges) {
       const activatedOn = moment(applicationCharges.priceplan_activated_on);
-      const initialBillingOn = applicationCharges.priceplan_billing_on
-        ? moment(applicationCharges.priceplan_billing_on)
-        : activatedOn.clone();
+      const initialBillingOn = applicationCharges.priceplan_billing_on ? moment(applicationCharges.priceplan_billing_on) : activatedOn.clone();
 
-      const { startDate: calculatedStartDate, endDate: calculatedEndDate } =
-        calculateBillingDateRange(activatedOn, initialBillingOn);
+      const { startDate: calculatedStartDate, endDate: calculatedEndDate } = calculateBillingDateRange(activatedOn, initialBillingOn);
 
       startDate = calculatedStartDate;
       endDate = calculatedEndDate;
@@ -2000,18 +1864,18 @@ exports.isMailLimitReached = async (store) => {
       // Use today to last month
       endDate = moment(); // Today
       // startDate = endDate.clone().subtract(1, "months"); // 1 month ago
-      startDate = moment().startOf('month');
+      startDate = moment().startOf("month");
     }
 
     function calculateBillingDateRange(activatedOn, billingOn) {
       const now = moment();
       const initialBilling = moment(billingOn);
-      const monthsDifference = now.diff(initialBilling, 'months');
-      const lastBillingDate = initialBilling.add(monthsDifference, 'months');
+      const monthsDifference = now.diff(initialBilling, "months");
+      const lastBillingDate = initialBilling.add(monthsDifference, "months");
       if (lastBillingDate.isBefore(now)) {
-        lastBillingDate.add(1, 'months');
+        lastBillingDate.add(1, "months");
       }
-      const startDate = lastBillingDate.clone().subtract(1, 'months');
+      const startDate = lastBillingDate.clone().subtract(1, "months");
       return { startDate, endDate: lastBillingDate };
     }
 
@@ -2034,11 +1898,11 @@ exports.isMailLimitReached = async (store) => {
     });
 
     if (emailCount > pricingPlanData.email_limit) {
-      console.log('email limit is reached for store=>', store.id);
+      console.log("email limit is reached for store=>", store.id);
       let isMailSended = await db.LimitReached.findOne({
         where: {
           store_id: store.id,
-          type: 'email',
+          type: "email",
           [Op.and]: [
             {
               created_at: {
@@ -2054,23 +1918,14 @@ exports.isMailLimitReached = async (store) => {
         },
       });
       if (!isMailSended) {
-        let templateId =
-          pricingPlanData.id == 208
-            ? 17
-            : pricingPlanData.id == 209
-              ? 18
-              : pricingPlanData.id == 210
-                ? 19
-                : pricingPlanData.id == 211
-                  ? 20
-                  : '';
+        let templateId = pricingPlanData.id == 208 ? 17 : pricingPlanData.id == 209 ? 18 : pricingPlanData.id == 210 ? 19 : pricingPlanData.id == 211 ? 20 : "";
         const options = {
-          method: 'POST',
-          url: 'https://api.brevo.com/v3/smtp/email',
+          method: "POST",
+          url: "https://api.brevo.com/v3/smtp/email",
           headers: {
-            accept: 'application/json',
-            'content-type': 'application/json',
-            'api-key': CONFIG.brevo.api_key,
+            accept: "application/json",
+            "content-type": "application/json",
+            "api-key": CONFIG.brevo.api_key,
           },
           data: {
             to: [{ email: store.email, name: store.shop_owner }],
@@ -2080,16 +1935,16 @@ exports.isMailLimitReached = async (store) => {
         let res = await axios.request(options);
         let miailReached = await db.LimitReached.create({
           store_id: store.id,
-          type: 'email',
+          type: "email",
           created_at: new Date(),
           mail_sent_date: res?.data ? new Date() : null,
-          is_mail_sent: res?.data ? '1' : '0',
+          is_mail_sent: res?.data ? "1" : "0",
         });
       }
     }
     return emailCount > pricingPlanData.email_limit;
   } catch (error) {
-    console.log('Error in emailCount of apphelper', error);
+    console.log("Error in emailCount of apphelper", error);
     return true;
   }
 };
@@ -2099,20 +1954,14 @@ exports.getAllProductIdsByProductId = async (store_id, productId) => {
     const productGroupResponse = await db.ProductGroup.findAll({
       where: {
         store_id: store_id,
-        [Op.and]: db.sequelize.literal(
-          `JSON_CONTAINS(productIds, '"${productId}"') = 1`
-        ),
+        [Op.and]: db.sequelize.literal(`JSON_CONTAINS(productIds, '"${productId}"') = 1`),
       },
     });
-    const allProductIds = productGroupResponse
-      .map((group) => group.productIds)
-      .flat();
-    const uniqueProductIds = allProductIds.length
-      ? [...new Set(allProductIds)]
-      : [productId];
+    const allProductIds = productGroupResponse.map((group) => group.productIds).flat();
+    const uniqueProductIds = allProductIds.length ? [...new Set(allProductIds)] : [productId];
     return uniqueProductIds;
   } catch (error) {
-    console.log('error in get productGroups by productId', error);
+    console.log("error in get productGroups by productId", error);
     return [productId]; // Return at least the original product ID on error
   }
 };
@@ -2143,9 +1992,9 @@ exports.merchantNotification = async (reviewData, store) => {
     let notificationResponse = await db.Settings.findOne({
       where: {
         store_id: store.id,
-        key: 'notification_setting',
+        key: "notification_setting",
       },
-      attributes: ['value'],
+      attributes: ["value"],
     });
 
     if (!notificationResponse) return;
@@ -2204,7 +2053,7 @@ exports.merchantNotification = async (reviewData, store) => {
       let response = await this.sendgridSendMail(sendgridObject);
     }
   } catch (error) {
-    console.log('Error in merchantNotification helper', error);
+    console.log("Error in merchantNotification helper", error);
   }
 };
 
@@ -2213,9 +2062,9 @@ exports.merchantQuestionAndAnswer = async (qnaList, store) => {
     let QnaResponse = await db.Settings.findOne({
       where: {
         store_id: store.id,
-        key: 'notification_setting',
+        key: "notification_setting",
       },
-      attributes: ['value'],
+      attributes: ["value"],
     });
 
     // if (!store.id) {
@@ -2276,7 +2125,7 @@ exports.merchantQuestionAndAnswer = async (qnaList, store) => {
       let response = await this.sendgridSendMail(sendgridObject);
     }
   } catch (error) {
-    console.log('Error in the merchantQuestionAndAnswer Helper', error);
+    console.log("Error in the merchantQuestionAndAnswer Helper", error);
   }
 };
 exports.dealReport = async (period, store) => {
@@ -2287,19 +2136,16 @@ exports.dealReport = async (period, store) => {
     };
     const days = daysMap[period] || 7;
     const fromDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
-    console.log('Store Id', store);
+    console.log("Store Id", store);
 
     const deals = await db.Order.findOne({
       attributes: [
-        [
-          literal('COALESCE(SUM(CAST(price AS DECIMAL(10,2))), 0)'),
-          'totalRevenue',
-        ],
-        [literal('COUNT(*)'), 'orderCount'],
+        [literal("COALESCE(SUM(CAST(price AS DECIMAL(10,2))), 0)"), "totalRevenue"],
+        [literal("COUNT(*)"), "orderCount"],
       ],
       where: {
         store_id: store,
-        is_cep_order: '1',
+        is_cep_order: "1",
         created_at: { [Op.gte]: fromDate },
       },
       raw: true,
@@ -2308,15 +2154,8 @@ exports.dealReport = async (period, store) => {
     // DealCounts totalDeals activeDeals
     const dealCounts = await db.Offers.findOne({
       attributes: [
-        [fn('COUNT', col('id')), 'totalDeals'],
-        [
-          fn(
-            'COALESCE',
-            fn('SUM', literal('CASE WHEN is_active = 1 THEN 1 ELSE 0 END')),
-            0
-          ),
-          'activeDeals',
-        ],
+        [fn("COUNT", col("id")), "totalDeals"],
+        [fn("COALESCE", fn("SUM", literal("CASE WHEN is_active = 1 THEN 1 ELSE 0 END")), 0), "activeDeals"],
       ],
       where: {
         store_id: store,
@@ -2331,7 +2170,7 @@ exports.dealReport = async (period, store) => {
       activeDeals: dealCounts.activeDeals,
     };
   } catch (error) {
-    console.log('Error in the dealReort Helper', error);
+    console.log("Error in the dealReort Helper", error);
   }
 };
 
@@ -2342,11 +2181,11 @@ exports.reviewReport = async (period, storeId) => {
       monthly: 30,
     };
     const days = daysMap[period] || 7;
-    const fromDate = moment().subtract(days, 'days').toDate();
+    const fromDate = moment().subtract(days, "days").toDate();
     const reviewData = await db.Reviews.findAll({
       attributes: [
-        [fn('COUNT', col('rating')), 'totalCount'],
-        [fn('AVG', col('rating')), 'avarageRating'],
+        [fn("COUNT", col("rating")), "totalCount"],
+        [fn("AVG", col("rating")), "avarageRating"],
       ],
       where: {
         store_id: storeId,
@@ -2362,11 +2201,7 @@ exports.reviewReport = async (period, storeId) => {
 
     const { totalCount, avarageRating } = reviewData[0].dataValues;
     const topRatedProduct = await db.Reviews.findAll({
-      attributes: [
-        'product_id',
-        'handle',
-        [fn('COUNT', col('rating')), 'reviewCount'],
-      ],
+      attributes: ["product_id", "handle", [fn("COUNT", col("rating")), "reviewCount"]],
       where: {
         store_id: storeId,
         rating: { [Op.gt]: 3 },
@@ -2374,10 +2209,10 @@ exports.reviewReport = async (period, storeId) => {
       },
       include: {
         model: db.Store,
-        attributes: ['id', 'domain', 'main_domain'],
+        attributes: ["id", "domain", "main_domain"],
       },
-      group: ['product_id'],
-      order: [[fn('COUNT', col('rating')), 'DESC']],
+      group: ["product_id"],
+      order: [[fn("COUNT", col("rating")), "DESC"]],
       limit: 1,
     });
     let productData;
@@ -2387,7 +2222,7 @@ exports.reviewReport = async (period, storeId) => {
           store_id: storeId,
           product_id: topRatedProduct[0].product_id,
         },
-        attributes: ['id', 'product_id', 'handle', 'title'],
+        attributes: ["id", "product_id", "handle", "title"],
       });
     }
 
@@ -2396,15 +2231,10 @@ exports.reviewReport = async (period, storeId) => {
       totalReviews: totalCount,
       averageRating: avarageRating || 0,
       topReviewedProduct: productData && productData.title,
-      topReviewedProductUrl:
-        productData &&
-        `https://${
-          topRatedProduct[0].store.main_domain ||
-          topRatedProduct[0].store.domain
-        }/products/${topRatedProduct[0].handle}`,
+      topReviewedProductUrl: productData && `https://${topRatedProduct[0].store.main_domain || topRatedProduct[0].store.domain}/products/${topRatedProduct[0].handle}`,
     };
   } catch (error) {
-    console.error('Error in reviewReport helper:', error);
+    console.error("Error in reviewReport helper:", error);
     return null;
   }
 };
@@ -2419,17 +2249,17 @@ exports.rewardReport = async (period, storeId) => {
     const fromDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
     const creditStats = await db.CreditLogs.findAll({
-      attributes: ['action_type', [fn('COUNT', col('action_type')), 'count']],
+      attributes: ["action_type", [fn("COUNT", col("action_type")), "count"]],
       where: {
         store_id: storeId,
         created_at: {
           [Op.gte]: fromDate,
         },
         action_type: {
-          [Op.in]: ['credit', 'redeem'],
+          [Op.in]: ["credit", "redeem"],
         },
       },
-      group: ['action_type'],
+      group: ["action_type"],
     });
 
     const totalRewards = await db.CreditLogs.count({
@@ -2445,20 +2275,15 @@ exports.rewardReport = async (period, storeId) => {
 
     creditStats.forEach((row) => {
       const { action_type, count } = row.get({ plain: true });
-      if (action_type === 'credit') creditCount = parseInt(count, 10);
-      if (action_type === 'redeem') redeemCount = parseInt(count, 10);
+      if (action_type === "credit") creditCount = parseInt(count, 10);
+      if (action_type === "redeem") redeemCount = parseInt(count, 10);
     });
 
     const rewardRevenue = await db.Order.findOne({
-      attributes: [
-        [
-          literal('COALESCE(SUM(CAST(price AS DECIMAL(10, 2))),0)'),
-          'totalRevenue',
-        ],
-      ],
+      attributes: [[literal("COALESCE(SUM(CAST(price AS DECIMAL(10, 2))),0)"), "totalRevenue"]],
       where: {
         store_id: storeId,
-        is_cep_order: '2',
+        is_cep_order: "2",
         created_at: { [Op.gte]: fromDate },
       },
       raw: true,
@@ -2471,7 +2296,7 @@ exports.rewardReport = async (period, storeId) => {
       redeem: redeemCount,
     };
   } catch (error) {
-    console.error('Error in rewardReport helper:', error);
+    console.error("Error in rewardReport helper:", error);
     return null;
   }
 };
@@ -2480,14 +2305,14 @@ exports.sendReport = async (period) => {
   try {
     const eligibleSettings = await db.Settings.findAll({
       where: {
-        key: 'notification_setting',
+        key: "notification_setting",
         value: {
           [Op.like]: `%${period}%`,
         },
       },
       include: {
         model: db.Store,
-        attributes: ['id', 'email', 'username'],
+        attributes: ["id", "email", "username"],
       },
       // raw: true,
     });
@@ -2497,7 +2322,7 @@ exports.sendReport = async (period) => {
       try {
         const reviewReport = await this.reviewReport(period, element.store_id);
         const rewardReport = await this.rewardReport(period, element.store_id);
-        const dealReport = await this.dealReport(period, element.store_id);
+        // const dealReport = await this.dealReport(period, element.store_id);
         // console.log("reviewReport", reviewReport);
         // console.log("rewardReport", rewardReport);
         // console.log("dealReport", dealReport);
@@ -2519,7 +2344,7 @@ exports.sendReport = async (period) => {
                   <table cellpadding="0" cellspacing="0" border="0" align="center" width="100%" style="max-width: 600px; background-color: #ffffff; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
                       <tr>
                           <td style="background-color: #E6EAFA; padding: 20px; text-align: center; color: white;">
-                              <img src=${'https://thevital-production.s3.us-east-2.amazonaws.com/application-images/retenzy-logo/cropped+logo.png'} alt="Retenzy Logo" style="max-height: 30px; vertical-align: middle; margin-bottom: 10px; background-color: #E6EAFA; padding: 5px;">
+                              <img src=${"https://thevital-production.s3.us-east-2.amazonaws.com/application-images/retenzy-logo/cropped+logo.png"} alt="Retenzy Logo" style="max-height: 30px; vertical-align: middle; margin-bottom: 10px; background-color: #E6EAFA; padding: 5px;">
                               <h1 style="margin: 0; font-size: 22px; font-weight: 600; color: #0035FC;">Your Store Performance Report</h1>
                               <p style="margin: 5px 0 0; font-size: 14px; color: #052F99;">Insights for ${period} Performance</p>
                           </td>
@@ -2536,38 +2361,28 @@ exports.sendReport = async (period) => {
                                               <tr>
                                                   <td style="width: 50%; padding: 5px;">
                                                       <p style="margin: 0; color: #666;">Total Reviews</p>
-                                                      <p style="margin: 0; font-size: 20px; font-weight: bold; color: #0035FC;">${
-                                                        reviewReport?.allCounts
-                                                      }</p>
+                                                      <p style="margin: 0; font-size: 20px; font-weight: bold; color: #0035FC;">${reviewReport?.allCounts}</p>
                                                   </td>
                                                   <td style="width: 50%; padding: 5px;">
                                                       <p style="margin: 0; color: #666;">Reviews in this ${period}</p>
-                                                      <p style="margin: 0; font-size: 20px; font-weight: bold; color: #0035FC;">${
-                                                        reviewReport.totalReviews
-                                                      }</p>
+                                                      <p style="margin: 0; font-size: 20px; font-weight: bold; color: #0035FC;">${reviewReport.totalReviews}</p>
                                                   </td>
                                               </tr>
                                               <tr>
                                                   <td style="padding: 5px;">
                                                       <p style="margin: 0; color: #666;">Average Rating</p>
-                                                      <p style="margin: 0; font-size: 20px; font-weight: bold; color: #0035FC;">${parseInt(
-                                                        reviewReport.averageRating
-                                                      ).toFixed(1)}</p>
+                                                      <p style="margin: 0; font-size: 20px; font-weight: bold; color: #0035FC;">${parseInt(reviewReport.averageRating).toFixed(1)}</p>
                                                   </td>
                                                  ${
                                                    reviewReport.topReviewedProduct
                                                      ? `<td style="padding: 5px;">
                                                       <p style="margin: 0; color: #666;">Top Reviewed Product</p>
                                                       <p style="margin: 0; font-size: 16px; font-weight: bold; color: #052F99;">
-        ${
-          reviewReport.topReviewedProduct
-            ? `<a href="${reviewReport.topReviewedProductUrl}" style="color: #052F99; text-decoration: none;">${reviewReport.topReviewedProduct}</a>`
-            : 'N/A'
-        }
+        ${reviewReport.topReviewedProduct ? `<a href="${reviewReport.topReviewedProductUrl}" style="color: #052F99; text-decoration: none;">${reviewReport.topReviewedProduct}</a>` : "N/A"}
       </p>
 
                                                   </td>`
-                                                     : ''
+                                                     : ""
                                                  }
                                               </tr>
                                           </table>
@@ -2582,29 +2397,21 @@ exports.sendReport = async (period) => {
                                               <tr>
                                                   <td style="width: 50%; padding: 5px;">
                                                       <p style="margin: 0; color: #666;">Total Rewards Given</p>
-                                                      <p style="margin: 0; font-size: 20px; font-weight: bold; color: #F2795C;">${
-                                                        rewardReport.totalRewards
-                                                      }</p>
+                                                      <p style="margin: 0; font-size: 20px; font-weight: bold; color: #F2795C;">${rewardReport.totalRewards}</p>
                                                   </td>
                                                   <td style="width: 50%; padding: 5px;">
                                                       <p style="margin: 0; color: #666;">Rewards This Period</p>
-                                                      <p style="margin: 0; font-size: 20px; font-weight: bold; color: #F2795C;">${
-                                                        rewardReport.credit
-                                                      }</p>
+                                                      <p style="margin: 0; font-size: 20px; font-weight: bold; color: #F2795C;">${rewardReport.credit}</p>
                                                   </td>
                                               </tr>
                                               <tr>
                                                   <td style="padding: 5px;">
                                                       <p style="margin: 0; color: #666;">Rewards Redeemed</p>
-                                                      <p style="margin: 0; font-size: 20px; font-weight: bold; color: #F2795C;">${
-                                                        rewardReport.redeem
-                                                      }</p>
+                                                      <p style="margin: 0; font-size: 20px; font-weight: bold; color: #F2795C;">${rewardReport.redeem}</p>
                                                   </td>
                                                   <td style="padding: 5px;">
                                                       <p style="margin: 0; color: #666;">Revenue from Rewards</p>
-                                                      <p style="margin: 0; font-size: 20px; font-weight: bold; color: #052F99;">${
-                                                        rewardReport.rewardRevenue
-                                                      }</p>
+                                                      <p style="margin: 0; font-size: 20px; font-weight: bold; color: #052F99;">${rewardReport.rewardRevenue}</p>
                                                   </td>
                                               </tr>
                                           </table>
@@ -2612,51 +2419,6 @@ exports.sendReport = async (period) => {
                                       </td>
                                   </tr>
 
-                                  <tr>
-                                      <td colspan="2" style="background-color: #F6F8FF; padding: 15px; border-left: 4px solid #52BD94; margin-top: 20px; position: relative;">
-                                          <h2 style="margin: 0 0 15px 0; color: #052F99; font-size: 18px;">💡 Deals Performance</h2>
-                                          <table width="100%">
-                                              <tr>${
-                                                dealReport.activeDeals === `0`
-                                                  ? `This ${period} has no deals`
-                                                  : `
-                                                  <td style="width: 50%; padding: 5px;">
-                                                      <p style="margin: 0; color: #666;">Active Deals</p>
-                                                      <p style="margin: 0; font-size: 20px; font-weight: bold; color: #52BD94;">${
-                                                        dealReport.activeDeals ===
-                                                        0
-                                                          ? `<p>No active deals this ${period}<p>`
-                                                          : dealReport.activeDeals
-                                                      }</p>
-                                                  </td>
-                                                  <td style="width: 50%; padding: 5px;">
-                                                      <p style="margin: 0; color: #666;">Orders Through Deals</p>
-                                                      <p style="margin: 0; font-size: 20px; font-weight: bold; color: #52BD94;">${
-                                                        dealReport.orderThroughDeals
-                                                          ? `<p>No Order Deal this ${period}</p>`
-                                                          : dealReport.orderThroughDeals
-                                                      }</p>
-                                                  </td>
-                                              </tr>
-                                              <tr>
-                                                  <td colspan="2" style="padding: 5px;">
-                                                      <p style="margin: 0; color: #666;">Revenue Through Deals</p>
-                                                      <p style="margin: 0; font-size: 20px; font-weight: bold; color: #052F99;">${
-                                                        dealReport.dealsRevenue
-                                                          .totalRevenue
-                                                          ? '$' +
-                                                            dealReport
-                                                              .dealsRevenue
-                                                              .totalRevenue
-                                                          : 'N/A'
-                                                      }</p>
-                                                  </td>
-                                              </tr>`
-                                              }
-                                          </table>
-                                          <div style="border-bottom: 1px solid #E0E0E0; position: absolute; bottom: 0; left: 4px; right: 0;"></div>
-                                      </td>
-                                  </tr>
                               </table>
 
                               <p style="text-align: center; margin-top: 20px;">
@@ -2677,38 +2439,37 @@ exports.sendReport = async (period) => {
                       </tr>
                   </table>
               </body>
-              </html>
-                        `,
+              </html>`,
         };
         await this.sendgridSendMail(sendgridObject);
       } catch (err) {
-        console.error(
-          `Error generating report for store ${element.store_id}:`,
-          err
-        );
+        console.error(`Error generating report for store ${element.store_id}:`, err);
       }
     }
   } catch (error) {
-    console.log('sendWeeklyReport error:', error);
+    console.log("sendWeeklyReport error:", error);
   }
 };
 
-
-
-
-exports.getMailSettings=async(key, store_id)=> {
-  const setting = await db.Settings.findOne({
-    where: { store_id, key: 'mail_settings' }
+exports.getMailSettings = async (key, store_id) => {
+  const emailEnable = await db.Store.findOne({
+    where: { id: store_id, email_enable: "1" },
   });
-  console.log("Setting fetched:", setting?.value);
-  if (!setting) return null;
+
+  if (!emailEnable) return false;
+
+  const setting = await db.Settings.findOne({
+    where: { store_id, key: "mail_settings" },
+  });
+  console.log("setting in getMailSettings", setting?.value);
+  if (!setting) return false;
 
   let settingsObj = {};
   try {
     settingsObj = JSON.parse(setting?.value); // parse JSON string
   } catch (e) {
     console.error("Invalid JSON in mail_settings:", e);
-    return null;
+    return false;
   }
 
   const keys = key.split("."); // support nested keys
@@ -2720,5 +2481,9 @@ exports.getMailSettings=async(key, store_id)=> {
   }
 
   return value;
-}
+};
 
+// (async () => {
+//   const getMailSetting = await getMailSettings("ReviewRequestEmails.ReviewReminder", 251);
+//   console.log("what is the getMailSetting", getMailSetting);
+// })();
